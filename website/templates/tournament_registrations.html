@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+
+{% block title %}Registrations for {{ tournament.name }}{% endblock %}
+
+{% block content %}
+<h1>Registrations for {{ tournament.name }}</h1>
+<p><strong>Location:</strong> {{ tournament.location }}</p>
+<p><strong>Date:</strong> {{ tournament.date.strftime('%Y-%m-%d') }}</p>
+<p><strong>Max Teams:</strong> {{ tournament.max_teams }}</p>
+
+<h2>Registered Teams</h2>
+{% if registrations %}
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Team Name</th>
+            <th>Captain</th>
+            <th>Registration Date</th>
+            <th>Status</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for reg in registrations %}
+        <tr>
+            <td>{{ reg.team.name }}</td>
+            <td>{{ reg.team.captain.first_name }}</td>
+            <td>{{ reg.registration_date.strftime('%Y-%m-%d') }}</td>
+            <td>{{ reg.status }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<p>No registrations yet.</p>
+{% endif %}
+
+<a href="{{ url_for('views.tournaments') }}" class="btn btn-secondary">Back to Tournaments</a>
+{% endblock %}

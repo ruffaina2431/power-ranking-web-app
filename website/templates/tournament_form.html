@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+{% block title %}{{ action }} Tournament{% endblock %}
+
+{% block content %}
+<h1>{{ action }} Tournament</h1>
+<form method="POST">
+    <div class="form-group">
+        <label for="name">Tournament Name</label>
+        <input type="text" class="form-control" id="name" name="name" value="{{ tournament.name if tournament else '' }}" required>
+    </div>
+    <div class="form-group">
+        <label for="location">Location</label>
+        <select class="form-control" id="location" name="location" required>
+            <option value="point-a" {% if tournament and tournament.location == 'point-a' %}selected{% endif %}>Point A</option>
+            <option value="point-b" {% if tournament and tournament.location == 'point-b' %}selected{% endif %}>Point B</option>
+        </select>
+    </div>
+    <div class="form-group">
+        <label for="date">Date</label>
+        <input type="date" class="form-control" id="date" name="date" value="{{ tournament.date.strftime('%Y-%m-%d') if tournament else '' }}" required>
+    </div>
+    <div class="form-group">
+        <label for="max_teams">Max Teams</label>
+        <input type="number" class="form-control" id="max_teams" name="max_teams" value="{{ tournament.max_teams if tournament else '' }}" required>
+    </div>
+    <button type="submit" class="btn btn-primary">{{ action }}</button>
+    <a href="{{ url_for('views.tournaments') }}" class="btn btn-secondary">Cancel</a>
+</form>
+{% endblock %}

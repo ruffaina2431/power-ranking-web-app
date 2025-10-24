@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+
+{% block title %}Tournaments{% endblock %}
+
+{% block content %}
+<h1>Tournaments</h1>
+<a href="{{ url_for('views.tournament_create') }}" class="btn btn-primary mb-3">Create New Tournament</a>
+{% if tournaments %}
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Location</th>
+            <th>Date</th>
+            <th>Max Teams</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for tournament in tournaments %}
+        <tr>
+            <td>{{ tournament.name }}</td>
+            <td>{{ tournament.location }}</td>
+            <td>{{ tournament.date.strftime('%Y-%m-%d') }}</td>
+            <td>{{ tournament.max_teams }}</td>
+            <td>
+                <a href="{{ url_for('views.tournament_registrations', tournament_id=tournament.id) }}" class="btn btn-sm btn-info">Registrations</a>
+                <a href="{{ url_for('views.tournament_edit', tournament_id=tournament.id) }}" class="btn btn-sm btn-warning">Edit</a>
+                <form method="POST" action="{{ url_for('views.tournament_delete', tournament_id=tournament.id) }}" style="display:inline;">
+                    <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure?')">Delete</button>
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<p>No tournaments yet. <a href="{{ url_for('views.tournament_create') }}">Create one now</a>.</p>
+{% endif %}
+{% endblock %}

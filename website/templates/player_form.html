@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+
+{% block title %}{{ action }} Player{% endblock %}
+
+{% block content %}
+<h1>{{ action }} Player</h1>
+{% if team %}
+<h2>For Team: {{ team.name }}</h2>
+{% endif %}
+<form method="POST">
+    <div class="form-group">
+        <label for="name">Player Name</label>
+        <input type="text" class="form-control" id="name" name="name" value="{{ player.name if player else '' }}" required>
+    </div>
+    <button type="submit" class="btn btn-primary">{{ action }}</button>
+    {% if team %}
+    <a href="{{ url_for('views.team_detail', team_id=team.id) }}" class="btn btn-secondary">Cancel</a>
+    {% else %}
+    <a href="{{ url_for('views.team_detail', team_id=player.team_id) }}" class="btn btn-secondary">Cancel</a>
+    {% endif %}
+</form>
+{% endblock %}

@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+
+{% block title %}{{ team.name }}{% endblock %}
+
+{% block content %}
+<h1>{{ team.name }}</h1>
+<p><strong>Captain Phone:</strong> {{ team.captain_phone }}</p>
+<p><strong>Points:</strong> {{ team.points }}</p>
+<p><strong>Wins:</strong> {{ team.wins }}</p>
+<p><strong>Rank:</strong> {{ team.rank }}</p>
+<p><strong>Created:</strong> {{ team.created_date.strftime('%Y-%m-%d') }}</p>
+
+<h2>Players</h2>
+<a href="{{ url_for('views.add_player', team_id=team.id) }}" class="btn btn-success mb-3">Add Player</a>
+{% if team.players %}
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Join Date</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for player in team.players %}
+        <tr>
+            <td>{{ player.name }}</td>
+            <td>{{ player.join_date.strftime('%Y-%m-%d') }}</td>
+            <td>
+                <a href="{{ url_for('views.edit_player', player_id=player.id) }}" class="btn btn-sm btn-warning">Edit</a>
+                <form method="POST" action="{{ url_for('views.delete_player', player_id=player.id) }}" style="display:inline;">
+                    <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure?')">Delete</button>
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<p>No players yet.</p>
+{% endif %}
+
+<a href="{{ url_for('views.teams') }}" class="btn btn-secondary">Back to Teams</a>
+{% endblock %}

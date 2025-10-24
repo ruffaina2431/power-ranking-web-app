@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+
+{% block title %}{{ action }} Team{% endblock %}
+
+{% block content %}
+<h1>{{ action }} Team</h1>
+<form method="POST">
+    <div class="form-group">
+        <label for="name">Team Name</label>
+        <input type="text" class="form-control" id="name" name="name" value="{{ team.name if team else '' }}" required>
+    </div>
+    <div class="form-group">
+        <label for="captain_phone">Captain Phone</label>
+        <input type="text" class="form-control" id="captain_phone" name="captain_phone" value="{{ team.captain_phone if team else '' }}" required>
+    </div>
+    <button type="submit" class="btn btn-primary">{{ action }}</button>
+    <a href="{{ url_for('views.teams') }}" class="btn btn-secondary">Cancel</a>
+</form>
+{% endblock %}
