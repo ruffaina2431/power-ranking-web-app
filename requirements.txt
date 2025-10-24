@@ -1,0 +1,8 @@
+Flask>=2.0
+Flask-SQLAlchemy>=2.5
+Flask-Login>=0.5
+Werkzeug>=2.0
+PyMySQL>=1.0    # MySQL driver for SQLAlchemy (used by default config)
+python-dotenv>=1.0  # optional, useful for loading .env files in development
+# Optional (for migrations):
+Flask-Migrate>=3.1
