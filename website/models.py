@@ -66,9 +66,10 @@ class Player(db.Model):
 class Tournament(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(150))  # Tournament name
+    game_name = db.Column(db.String(150))  # Game name for the tournament
     location = db.Column(db.String(50))  # example 'point-a' or 'point-b'
     date = db.Column(db.DateTime(timezone=True))
-    max_teams = db.Column(db.Integer)
+    max_players = db.Column(db.Integer)
     registrations = db.relationship('TournamentRegistration', backref='tournament', lazy=True)
 
 class TournamentRegistration(db.Model):

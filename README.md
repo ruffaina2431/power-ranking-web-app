@@ -32,6 +32,7 @@ python -m venv .venv
 2. Install dependencies:
 
 ```powershell
+pip install mysqlclient
 pip install -r requirements.txt
 ```
 
@@ -64,7 +65,7 @@ The database tables are defined in `website/models.py` (SQLAlchemy models). Key 
   - id, name, team_id, join_date
 
 - Tournament
-  - id, name, location, date, max_teams
+  - id, name, location, date, max_players
 
 - TournamentRegistration
   - id, tournament_id, team_id, registration_date, status

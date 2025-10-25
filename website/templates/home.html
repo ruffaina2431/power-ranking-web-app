@@ -3,15 +3,6 @@
 {% block content %}
 
 <script>
-$(document).ready(function() {
-    $('#teamRegistrationModal').on('show.bs.modal', function (event) {
-        var button = $(event.relatedTarget);
-        var tournamentLocation = button.data('tournament-location');
-        var modal = $(this);
-        modal.find('#tournamentLocation').val(tournamentLocation);
-    });
-});
-
 function changeCategory(category) {
     window.location.href = '?category=' + encodeURIComponent(category);
 }
@@ -152,7 +143,7 @@ function sortTable(sortBy) {
                         <h6 class="card-title">Date: {{ tournament.date.strftime('%B %d, %Y') }}</h6>
                         <p class="card-text">
                             Location: {{ tournament.location|title }}<br>
-                            Max Teams: {{ tournament.max_teams }}<br>
+                            Max Players: {{ tournament.max_players }}<br>
                             Requirements:
                             <ul class="mb-2">
                                 <li>Complete team roster (5 players)</li>
@@ -161,7 +152,7 @@ function sortTable(sortBy) {
                             </ul>
                         </p>
                         {% if current_user.is_authenticated %}
-                        <button type="button" class="btn {% if tournament.location == 'point-a' %}btn-success{% else %}btn-info{% endif %} btn-block" data-toggle="modal" data-target="#teamRegistrationModal" data-tournament-location="{{ tournament.location }}">Register Team</button>
+                        <a href="{{ url_for('views.team_create', game_name=tournament.game_name, tournament_location=tournament.location) }}" class="btn {% if tournament.location == 'point-a' %}btn-success{% else %}btn-info{% endif %} btn-block">Create Team & Register</a>
                         {% else %}
                         <a href="/login" class="btn {% if tournament.location == 'point-a' %}btn-success{% else %}btn-info{% endif %} btn-block">Login to Register</a>
                         {% endif %}
@@ -183,46 +174,6 @@ function sortTable(sortBy) {
 
 </div>
 
-<!-- Team Registration Modal -->
-<div class="modal fade" id="teamRegistrationModal" tabindex="-1" role="dialog" aria-labelledby="teamRegistrationModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="teamRegistrationModalLabel">Register Your Team</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-            <div class="modal-body">
-                <form method="POST" action="{{ url_for('views.register_team') }}">
-                    <div class="form-group">
-                        <label for="teamName">Team Name</label>
-                        <input type="text" class="form-control" id="teamName" name="teamName" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="captainName">Team Captain Name</label>
-                        <input type="text" class="form-control" id="captainName" name="captainName" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="captainEmail">Captain Email</label>
-                        <input type="email" class="form-control" id="captainEmail" name="captainEmail" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="captainPhone">Captain Phone Number</label>
-                        <input type="tel" class="form-control" id="captainPhone" name="captainPhone" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Team Members</label>
-                        {% for i in range(1, 6) %}
-                        <input type="text" class="form-control mb-2" name="player{{i}}" placeholder="Player {{i}} Name" required>
-                        {% endfor %}
-                    </div>
-                    <input type="hidden" id="tournamentLocation" name="tournamentLocation" value="">
-                    <button type="submit" class="btn btn-warning btn-block">Register Team</button>
-                </form>
-            </div>
-        </div>
-    </div>
-</div>
+
 
 {% endblock %}

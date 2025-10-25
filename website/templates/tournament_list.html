@@ -12,7 +12,7 @@
             <th>Name</th>
             <th>Location</th>
             <th>Date</th>
-            <th>Max Teams</th>
+            <th>Max Players</th>
             <th>Actions</th>
         </tr>
     </thead>
@@ -22,7 +22,7 @@
             <td>{{ tournament.name }}</td>
             <td>{{ tournament.location }}</td>
             <td>{{ tournament.date.strftime('%Y-%m-%d') }}</td>
-            <td>{{ tournament.max_teams }}</td>
+            <td>{{ tournament.max_players }}</td>
             <td>
                 <a href="{{ url_for('views.tournament_registrations', tournament_id=tournament.id) }}" class="btn btn-sm btn-info">Registrations</a>
                 <a href="{{ url_for('views.tournament_edit', tournament_id=tournament.id) }}" class="btn btn-sm btn-warning">Edit</a>

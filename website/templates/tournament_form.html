@@ -10,6 +10,10 @@
         <input type="text" class="form-control" id="name" name="name" value="{{ tournament.name if tournament else '' }}" required>
     </div>
     <div class="form-group">
+        <label for="game_name">Game Name</label>
+        <input type="text" class="form-control" id="game_name" name="game_name" value="{{ tournament.game_name if tournament else '' }}" required>
+    </div>
+    <div class="form-group">
         <label for="location">Location</label>
         <select class="form-control" id="location" name="location" required>
             <option value="point-a" {% if tournament and tournament.location == 'point-a' %}selected{% endif %}>Point A</option>
@@ -21,8 +25,8 @@
         <input type="date" class="form-control" id="date" name="date" value="{{ tournament.date.strftime('%Y-%m-%d') if tournament else '' }}" required>
     </div>
     <div class="form-group">
-        <label for="max_teams">Max Teams</label>
-        <input type="number" class="form-control" id="max_teams" name="max_teams" value="{{ tournament.max_teams if tournament else '' }}" required>
+        <label for="max_players">Max Players</label>
+        <input type="number" class="form-control" id="max_players" name="max_players" value="{{ tournament.max_players if tournament else '' }}" required>
     </div>
     <button type="submit" class="btn btn-primary">{{ action }}</button>
     <a href="{{ url_for('views.tournaments') }}" class="btn btn-secondary">Cancel</a>

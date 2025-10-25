@@ -112,7 +112,7 @@ Tournament
 ├── name
 ├── location
 ├── date
-└── max_teams
+└── max_players
 
 TournamentRegistration
 ├── id (Primary Key)

@@ -6,3 +6,4 @@ PyMySQL>=1.0    # MySQL driver for SQLAlchemy (used by default config)
 python-dotenv>=1.0  # optional, useful for loading .env files in development
 # Optional (for migrations):
 Flask-Migrate>=3.1
+

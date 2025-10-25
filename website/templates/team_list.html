@@ -4,7 +4,6 @@
 
 {% block content %}
 <h1>My Teams</h1>
-<a href="{{ url_for('views.team_create') }}" class="btn btn-primary mb-3">Create New Team</a>
 {% if teams %}
 <table class="table table-striped">
     <thead>
@@ -36,6 +35,6 @@
     </tbody>
 </table>
 {% else %}
-<p>You have no teams yet. <a href="{{ url_for('views.team_create') }}">Create one now</a>.</p>
+<p>You have no teams yet. Create one by registering for a tournament on the home page.</p>
 {% endif %}
 {% endblock %}
