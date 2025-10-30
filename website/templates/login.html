@@ -1,7 +1,33 @@
-{% extends "base.html" %} 
+{% extends "base.html" %}
+<!-- 
+Login Template
+
+This template provides the login form for existing users.
+Features:
+- Simple two-field login form
+- Required field validation
+- Secure password field
+- Integration with Flask-Login
+- Flash message support for errors
+
+Form Fields:
+- Email: User's registered email address
+- Password: User's password (masked input)
+
+Security Features:
+- Password field masking
+- CSRF protection via Flask-WTF
+- Server-side validation
+- Secure password handling
+
+Navigation:
+- Submit button for login
+- Automatic redirect to protected page after login
+- Error messaging for invalid credentials
+-->
 {% block title %} Login {% endblock %} 
 {% block content %} 
-<h1>THIS IS THE Login PAGE</h1> 
+<h1>Login</h1> 
 <form method="POST">
      
     <div class="form-group">

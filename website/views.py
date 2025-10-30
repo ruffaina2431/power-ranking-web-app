@@ -4,13 +4,42 @@ Views Blueprint for E-Sports Tournament Hub.
 This module defines all the main application routes including home page,
 team management, player management, tournament operations, and CRUD functionality.
 Handles user interactions for managing teams, players, and tournament registrations.
+
+Route Structure:
+- / (home): Displays tournament info and team rankings
+- /teams: Team management for authenticated users
+- /tournaments: Tournament management for admins
+- /manage-rankings: Ranking management for admins
+
+Key Features:
+- Team creation and management
+- Player roster management
+- Tournament registration
+- Dynamic team rankings
+- Tournament scheduling
+- Admin controls for tournament and ranking management
+
+Dependencies:
+- Flask for routing and templating
+- SQLAlchemy for database operations
+- Flask-Login for user session management
 """
 
 from flask import Blueprint, render_template, request, flash, redirect, url_for, abort
 from flask_login import login_required, current_user
+from sqlalchemy.sql import func
+from functools import wraps
+
 from .models import Team, Player, Tournament, TournamentRegistration
 from . import db
-from sqlalchemy.sql import func
+
+def admin_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if not current_user.is_admin:
+            abort(403)
+        return f(*args, **kwargs)
+    return decorated_function
 
 views = Blueprint('views', __name__)
 
@@ -77,16 +106,24 @@ def home():
     db.session.commit()
 
     # Get all upcoming tournaments
+    # pylint: disable=E1102
     upcoming_tournaments = Tournament.query.filter(
         Tournament.date >= func.now()
     ).order_by(Tournament.date.asc()).all()
 
     # Get available categories from tournament game_names
-    categories = db.session.query(Tournament.game_name).distinct().all()
+    categories = db.session.query(Tournament.game_name).distinct().all()  # type: ignore[call-arg]
     categories = [cat[0] for cat in categories]
 
-    return render_template("home.html", teams=teams, tournaments=upcoming_tournaments,
-                         current_category=category, categories=categories, sort_by=sort_by, order=order)
+    return render_template(
+        "home.html",
+        teams=teams,
+        tournaments=upcoming_tournaments,
+        current_category=category,
+        categories=categories,
+        sort_by=sort_by,
+        order=order
+    )
 
 
 
@@ -94,6 +131,10 @@ def home():
 @login_required
 def register_team():
     """Redirect to team creation with predefined game_name from tournament."""
+    if current_user.is_admin:
+        flash('Admins cannot create or register teams!', category='error')
+        return redirect(url_for('views.home'))
+
     if request.method == 'POST':
         tournament_location = request.form.get('tournamentLocation')
 
@@ -106,51 +147,59 @@ def register_team():
         else:
             flash('Tournament not found!', category='error')
             return redirect(url_for('views.home'))
+    # Ensure the view always returns a Response for static type-checkers
+    return redirect(url_for('views.home'))
 
 @views.route('/tournament-register/<location>', methods=['POST'])
 @login_required
 def tournament_register(location):
     """Handle tournament registration."""
-    team = Team.query.filter_by(captain_id=current_user.id).first()
-
-    if not team:
-        flash('You need to register a team first!', category='error')
+    if current_user.is_admin:
+        flash('Admins cannot create or register teams!', category='error')
         return redirect(url_for('views.home'))
 
-    tournament = Tournament.query.filter_by(
-        location=location,
-    ).order_by(Tournament.date.desc()).first()
+    if request.method == 'POST':
+        team = Team.query.filter_by(captain_id=current_user.id).first()
 
-    if not tournament:
-        flash('No upcoming tournament found for this location!', category='error')
+        if not team:
+            flash('You need to register a team first!', category='error')
+            return redirect(url_for('views.home'))
+
+        tournament = Tournament.query.filter_by(
+            location=location,
+        ).order_by(Tournament.date.desc()).first()
+
+        if not tournament:
+            flash('No upcoming tournament found for this location!', category='error')
+            return redirect(url_for('views.home'))
+
+        # Validate game_name match
+        if team.game_name != tournament.game_name:
+            flash(f'Cannot register for this tournament! Team game ({team.game_name}) does not match tournament game ({tournament.game_name}).', category='error')
+            return redirect(url_for('views.home'))
+
+        # Check if already registered
+        existing_reg = TournamentRegistration.query.filter_by(
+            tournament_id=tournament.id,
+            team_id=team.id
+        ).first()
+
+        if existing_reg:
+            flash('Your team is already registered for this tournament!', category='error')
+            return redirect(url_for('views.home'))
+
+        # Register for tournament
+        registration = TournamentRegistration()
+        registration.tournament_id = tournament.id
+        registration.team_id = team.id
+
+        db.session.add(registration)
+        db.session.commit()
+
+        flash('Successfully registered for the tournament!', category='success')
         return redirect(url_for('views.home'))
-
-    # Validate game_name match
-    if team.game_name != tournament.game_name:
-        flash(f'Cannot register for this tournament! Team game ({team.game_name}) does not match tournament game ({tournament.game_name}).', category='error')
+    else:
         return redirect(url_for('views.home'))
-
-    # Check if already registered
-    existing_reg = TournamentRegistration.query.filter_by(
-        tournament_id=tournament.id,
-        team_id=team.id
-    ).first()
-
-    if existing_reg:
-        flash('Your team is already registered for this tournament!', category='error')
-        return redirect(url_for('views.home'))
-
-    # Register for tournament
-    registration = TournamentRegistration(
-        tournament_id=tournament.id,
-        team_id=team.id
-    )
-
-    db.session.add(registration)
-    db.session.commit()
-
-    flash('Successfully registered for the tournament!', category='success')
-    return redirect(url_for('views.home'))
 
 # CRUD for Teams
 
@@ -174,6 +223,10 @@ def team_detail(team_id):
 @login_required
 def team_create():
     """Create a new team with players based on tournament requirements."""
+    if current_user.is_admin:
+        flash('Admins cannot create or register teams!', category='error')
+        return redirect(url_for('views.home'))
+
     if request.method == 'POST':
         team_name = request.form.get('name')
         game_name = request.form.get('game_name')
@@ -199,18 +252,19 @@ def team_create():
                 return redirect(url_for('views.team_create'))
             players.append(player_name.strip())
 
-        new_team = Team(
-            name=team_name,
-            game_name=game_name.strip(),
-            captain_id=current_user.id,
-            captain_phone=captain_phone
-        )
+        new_team = Team()
+        new_team.name = team_name
+        new_team.game_name = game_name.strip()
+        new_team.captain_id = current_user.id
+        new_team.captain_phone = captain_phone
         db.session.add(new_team)
         db.session.commit()
 
         # Add players to the team
         for player_name in players:
-            new_player = Player(name=player_name, team=new_team)
+            new_player = Player()
+            new_player.name = player_name
+            new_player.team = new_team
             db.session.add(new_player)
         db.session.commit()
 
@@ -220,10 +274,9 @@ def team_create():
                 location=tournament_location,
             ).order_by(Tournament.date.desc()).first()
             if tournament and tournament.game_name == new_team.game_name:
-                registration = TournamentRegistration(
-                    tournament_id=tournament.id,
-                    team_id=new_team.id
-                )
+                registration = TournamentRegistration()
+                registration.tournament_id = tournament.id
+                registration.team_id = new_team.id
                 db.session.add(registration)
                 db.session.commit()
                 flash(f'Team created with {max_players} players and registered for tournament successfully!', category='success')
@@ -235,7 +288,7 @@ def team_create():
         return redirect(url_for('views.teams'))
 
     # Get available categories from tournament game_names
-    categories = db.session.query(Tournament.game_name).distinct().all()
+    categories = db.session.query(Tournament.game_name).distinct().all()  # type: ignore[call-arg]
     categories = [cat[0] for cat in categories]
 
     # Check for predefined game_name from URL params
@@ -251,10 +304,14 @@ def team_create():
         if tournament:
             max_players = tournament.max_players
 
-    return render_template('team_form.html', action='Create', categories=categories,
-                         predefined_game_name=predefined_game_name,
-                         predefined_tournament_location=predefined_tournament_location,
-                         max_players=max_players)
+    return render_template(
+        'team_form.html',
+        action='Create',
+        categories=categories,
+        predefined_game_name=predefined_game_name,
+        predefined_tournament_location=predefined_tournament_location,
+        max_players=max_players
+    )
 
 @views.route('/team/<int:team_id>/edit', methods=['GET', 'POST'])
 @login_required
@@ -263,6 +320,12 @@ def team_edit(team_id):
     team = Team.query.get_or_404(team_id)
     if team.captain_id != current_user.id:
         abort(403)
+
+    # Check if team has any registrations
+    has_registrations = TournamentRegistration.query.filter_by(team_id=team_id).first() is not None
+    if has_registrations:
+        flash('Cannot edit team details after registering for a tournament!', category='error')
+        return redirect(url_for('views.team_detail', team_id=team.id))
 
     if request.method == 'POST':
         game_name = request.form.get('game_name')
@@ -280,7 +343,7 @@ def team_edit(team_id):
         return redirect(url_for('views.team_detail', team_id=team.id))
 
     # Get available categories from tournament game_names
-    categories = db.session.query(Tournament.game_name).distinct().all()
+    categories = db.session.query(Tournament.game_name).distinct().all()  # type: ignore[call-arg]
     categories = [cat[0] for cat in categories]
 
     return render_template('team_form.html', team=team, action='Edit', categories=categories)
@@ -300,25 +363,6 @@ def team_delete(team_id):
 
 # CRUD for Players
 
-@views.route('/team/<int:team_id>/add-player', methods=['GET', 'POST'])
-@login_required
-def add_player(team_id):
-    """Add a player to a team."""
-    team = Team.query.get_or_404(team_id)
-    if team.captain_id != current_user.id:
-        abort(403)
-
-    if request.method == 'POST':
-        player_name = request.form.get('name')
-        if player_name:
-            new_player = Player(name=player_name, team=team)
-            db.session.add(new_player)
-            db.session.commit()
-            flash('Player added successfully!', category='success')
-            return redirect(url_for('views.team_detail', team_id=team.id))
-
-    return render_template('player_form.html', team=team, action='Add')
-
 @views.route('/player/<int:player_id>/edit', methods=['GET', 'POST'])
 @login_required
 def edit_player(player_id):
@@ -335,23 +379,13 @@ def edit_player(player_id):
 
     return render_template('player_form.html', player=player, action='Edit')
 
-@views.route('/player/<int:player_id>/delete', methods=['POST'])
-@login_required
-def delete_player(player_id):
-    """Remove a player from a team."""
-    player = Player.query.get_or_404(player_id)
-    if player.team.captain_id != current_user.id:
-        abort(403)
 
-    db.session.delete(player)
-    db.session.commit()
-    flash('Player removed successfully!', category='success')
-    return redirect(url_for('views.team_detail', team_id=player.team_id))
 
 # CRUD for Tournaments (assuming admin access, for simplicity all logged-in users can manage for now)
 
 @views.route('/tournaments')
 @login_required
+@admin_required
 def tournaments():
     """List all tournaments."""
     all_tournaments = Tournament.query.all()
@@ -359,6 +393,7 @@ def tournaments():
 
 @views.route('/tournament/create', methods=['GET', 'POST'])
 @login_required
+@admin_required
 def tournament_create():
     """Create a new tournament."""
     if request.method == 'POST':
@@ -366,15 +401,24 @@ def tournament_create():
         game_name = request.form.get('game_name')
         location = request.form.get('location')
         date = request.form.get('date')
-        max_players = request.form.get('max_players')
+        max_players_str = request.form.get('max_players')
 
-        new_tournament = Tournament(
-            name=name,
-            game_name=game_name,
-            location=location,
-            date=date,
-            max_players=int(max_players)
-        )
+        if not max_players_str:
+            flash('Max players is required!', category='error')
+            return redirect(url_for('views.tournament_create'))
+
+        try:
+            max_players = int(max_players_str)
+        except ValueError:
+            flash('Max players must be a number!', category='error')
+            return redirect(url_for('views.tournament_create'))
+
+        new_tournament = Tournament()
+        new_tournament.name = name
+        new_tournament.game_name = game_name
+        new_tournament.location = location
+        new_tournament.date = date
+        new_tournament.max_players = max_players
         db.session.add(new_tournament)
         db.session.commit()
         flash('Tournament created successfully!', category='success')
@@ -384,16 +428,33 @@ def tournament_create():
 
 @views.route('/tournament/<int:tournament_id>/edit', methods=['GET', 'POST'])
 @login_required
+@admin_required
 def tournament_edit(tournament_id):
     """Edit an existing tournament."""
     tournament = Tournament.query.get_or_404(tournament_id)
 
     if request.method == 'POST':
-        tournament.name = request.form.get('name')
-        tournament.game_name = request.form.get('game_name')
-        tournament.location = request.form.get('location')
-        tournament.date = request.form.get('date')
-        tournament.max_players = int(request.form.get('max_players'))
+        name = request.form.get('name')
+        game_name = request.form.get('game_name')
+        location = request.form.get('location')
+        date = request.form.get('date')
+        max_players_str = request.form.get('max_players')
+
+        if not max_players_str:
+            flash('Max players is required!', category='error')
+            return redirect(url_for('views.tournament_edit', tournament_id=tournament_id))
+
+        try:
+            max_players = int(max_players_str)
+        except ValueError:
+            flash('Max players must be a number!', category='error')
+            return redirect(url_for('views.tournament_edit', tournament_id=tournament_id))
+
+        tournament.name = name
+        tournament.game_name = game_name
+        tournament.location = location
+        tournament.date = date
+        tournament.max_players = max_players
         db.session.commit()
         flash('Tournament updated successfully!', category='success')
         return redirect(url_for('views.tournaments'))
@@ -402,6 +463,7 @@ def tournament_edit(tournament_id):
 
 @views.route('/tournament/<int:tournament_id>/delete', methods=['POST'])
 @login_required
+@admin_required
 def tournament_delete(tournament_id):
     """Delete a tournament."""
     tournament = Tournament.query.get_or_404(tournament_id)
@@ -414,6 +476,7 @@ def tournament_delete(tournament_id):
 @views.route('/api/tournament/<location>')
 def api_tournament_details(location):
     """API endpoint to get tournament details by location."""
+    # pylint: disable=E1102
     tournament = Tournament.query.filter(
         Tournament.location == location,
         Tournament.date >= func.now(),
@@ -430,5 +493,46 @@ def tournament_registrations(tournament_id):
     tournament = Tournament.query.get_or_404(tournament_id)
     registrations = TournamentRegistration.query.filter_by(tournament_id=tournament_id).all()
     return render_template('tournament_registrations.html', tournament=tournament, registrations=registrations)
+
+# Admin Rankings Management
+
+@views.route('/manage-rankings')
+@login_required
+@admin_required
+def manage_rankings():
+    """Admin page to manage team rankings."""
+    # Get teams that have tournament registrations
+    teams = Team.query.join(TournamentRegistration).distinct().all()
+    return render_template('manage_rankings.html', teams=teams)
+
+@views.route('/manage-rankings/<int:team_id>/edit', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def edit_ranking(team_id):
+    """Edit points and wins for a team."""
+    team = Team.query.get_or_404(team_id)
+
+    if request.method == 'POST':
+        points_str = request.form.get('points')
+        wins_str = request.form.get('wins')
+
+        if not points_str or not wins_str:
+            flash('Points and wins are required!', category='error')
+            return redirect(url_for('views.edit_ranking', team_id=team_id))
+
+        try:
+            points = int(points_str)
+            wins = int(wins_str)
+        except ValueError:
+            flash('Points and wins must be numbers!', category='error')
+            return redirect(url_for('views.edit_ranking', team_id=team_id))
+
+        team.points = points
+        team.wins = wins
+        db.session.commit()
+        flash('Ranking updated successfully!', category='success')
+        return redirect(url_for('views.manage_rankings'))
+
+    return render_template('edit_ranking.html', team=team)
 
 

@@ -18,28 +18,29 @@ Recommended VS Code extensions
 - ms-python.python
 - ms-python.vscode-pylance
 - eamodio.gitlens
-- blackboxapp.blackbox (already recommended in .vscode/extensions.json)
 
 Install and run (Windows / PowerShell)
 -------------------------------------
-1. Create a virtual environment and activate it:
+Assuming you have cloned the repository and have VS Code installed, follow these steps to set up the project on a new device:
+
+1. Ensure Python 3.8+ is installed. If not, download and install it from https://www.python.org/downloads/.
+
+2. Run the automated setup script to create the virtual environment and install dependencies:
 
 ```powershell
-python -m venv .venv
-.\.venv\Scripts\Activate.ps1
+.\setup_venv.ps1
 ```
 
-2. Install dependencies:
+   This script will:
+   - Check for Python installation
+   - Create a virtual environment (`.venv`)
+   - Activate the virtual environment
+   - Install required packages from `requirements.txt`
 
-```powershell
-pip install mysqlclient
-pip install -r requirements.txt
-```
+3. Configure the database. The app uses MySQL by default (`mysql://root@localhost/esports_tournament`). You can either:
 
-3. Provide DB connection info. The app uses the connection string set in `website/__init__.py` by default (`mysql://root@localhost/esports_tournament`). You can either:
-
-- Create a MySQL database named `esports_tournament` and make sure a root user can connect (for local dev), OR
-- Change `app.config['SQLALCHEMY_DATABASE_URI']` in `website/__init__.py` to use SQLite for easy local testing, e.g. `sqlite:///esports_dev.db`.
+   - Install MySQL and create a database named `esports_tournament`, OR
+   - For easy local testing, change `app.config['SQLALCHEMY_DATABASE_URI']` in `website/__init__.py` to use SQLite: `sqlite:///esports_dev.db`
 
 4. (Optional) Create a `.env` file or set environment variables (see `.env.example`).
 

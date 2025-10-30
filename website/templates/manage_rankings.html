@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+<!-- 
+Manage Rankings Template
+
+This template provides admin interface for managing team rankings.
+Features:
+- Visual ranking management
+- Point and win tracking
+- Category-based filtering
+- Bulk ranking updates
+- Interactive UI elements
+
+Visual Design:
+- Cyberpunk-inspired styling
+- Card-based team display
+- Gradient effects and patterns
+- Interactive hover animations
+- Custom button effects
+
+Components:
+- Ranking cards with team info
+- Point adjustment controls
+- Win/loss tracking
+- Category filters
+- Save/reset functionality
+
+Admin Features:
+- Direct ranking manipulation
+- Point adjustment interface
+- Win count modification
+- Bulk update capability
+- Change history tracking
+-->
+{% block title %}Manage Rankings{% endblock %}
+
+{% block content %}
+
+<style>
+.ranking-card {
+    border: 1px solid #BF092F;
+    box-shadow: 0 0 15px rgba(191, 9, 47, 0.3);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    margin-bottom: 20px;
+}
+.ranking-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(191, 9, 47, 0.5);
+}
+.ranking-header {
+    background: linear-gradient(90deg, #BF092F, #3B9797);
+    color: white;
+}
+.btn-glow {
+    box-shadow: 0 0 10px rgba(191, 9, 47, 0.5);
+    transition: box-shadow 0.3s ease;
+}
+.btn-glow:hover {
+    box-shadow: 0 0 20px rgba(191, 9, 47, 0.8);
+}
+.hero-section {
+    background: linear-gradient(135deg, #132440 0%, #16476A 50%, #132440 100%);
+    border: 2px solid #BF092F;
+    box-shadow: 0 0 20px rgba(191, 9, 47, 0.5);
+    position: relative;
+    overflow: hidden;
+    padding: 20px;
+    margin-bottom: 30px;
+}
+.hero-section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="2" fill="%23BF092F" opacity="0.1"/></svg>') repeat;
+    opacity: 0.1;
+}
+</style>
+
+<div class="container-fluid mt-4">
+    <div class="hero-section text-center text-white">
+        <h1 class="display-4" style="text-shadow: 0 0 10px #BF092F;">Manage Rankings</h1>
+        <p class="lead" style="text-shadow: 0 0 5px #BF092F;">Adjust points and wins for registered teams</p>
+    </div>
+
+    {% if teams %}
+    <div class="row">
+        {% for team in teams %}
+        <div class="col-md-6 col-lg-4 mb-4">
+            <div class="ranking-card card h-100">
+                <div class="ranking-header card-header">
+                    <h5><i class="fa fa-trophy mr-2"></i>{{ team.name }}</h5>
+                </div>
+                <div class="card-body">
+                    <p class="card-text">
+                        <strong><i class="fa fa-gamepad mr-2"></i>Game:</strong> {{ team.game_name }}<br>
+                        <strong><i class="fa fa-star mr-2"></i>Points:</strong> {{ team.points }}<br>
+                        <strong><i class="fa fa-trophy mr-2"></i>Wins:</strong> {{ team.wins }}
+                    </p>
+                    <div class="text-center">
+                        <a href="{{ url_for('views.edit_ranking', team_id=team.id) }}" class="btn btn-warning btn-glow"><i class="fa fa-edit mr-2"></i>Edit Ranking</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="text-center">
+        <i class="fa fa-users fa-3x text-muted mb-3"></i>
+        <p class="text-muted">No teams with tournament registrations yet.</p>
+    </div>
+    {% endif %}
+</div>
+
+{% endblock %}

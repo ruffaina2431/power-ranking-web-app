@@ -1,4 +1,28 @@
 {% extends "base.html" %}
+<!-- 
+Team Form Template
+
+This template provides a form for creating and editing teams.
+Features:
+- Dynamic form title based on action (Create/Edit)
+- Game selection dropdown with predefined options
+- Player roster management
+- Team contact information
+- Tournament location handling
+
+Form Fields:
+- Team Name: Unique identifier for the team
+- Game Name: Dropdown of available game categories
+- Captain Phone: Contact number for team captain
+- Player Names: Dynamic list of player inputs based on max_players
+
+Special Features:
+- Predefined game name handling for tournament context
+- Tournament location tracking
+- Required field validation
+- Dynamic player input fields
+- Cancel option with return to teams list
+-->
 
 {% block title %}{{ action }} Team{% endblock %}
 
@@ -6,7 +30,7 @@
 <h1>{{ action }} Team</h1>
 {% if predefined_game_name %}
 <div class="alert alert-info">
-    <strong>Predefined Game:</strong> {{ predefined_game_name }}
+    <strong>Game Name:</strong> {{ predefined_game_name }}
     {% if predefined_tournament_location %}
     <br><strong>Tournament Location:</strong> {{ predefined_tournament_location }}
     {% endif %}
@@ -34,7 +58,7 @@
         <input type="text" class="form-control" id="captain_phone" name="captain_phone" value="{{ team.captain_phone if team else '' }}" required>
     </div>
     <div class="form-group">
-         equired)</label>
+        <label for="player-name"></label>Player Name (required)</label>
         {% for i in range(1, max_players + 1) %}
         <input type="text" class="form-control mb-2" name="player{{i}}" placeholder="Player {{i}} Name" required>
         {% endfor %}

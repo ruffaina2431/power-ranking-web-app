@@ -1,4 +1,29 @@
 {% extends "base.html" %}
+<!-- 
+Home Page Template
+
+This is the main landing page of the E-Sports Tournament Hub.
+Features:
+- Hero section with main title and branding
+- Dynamic team rankings table with sorting options
+- Game/tournament category filtering
+- Search functionality for finding specific games
+- Upcoming tournaments display
+- Interactive UI elements with hover effects
+
+Visual Elements:
+- Gradient backgrounds with subtle patterns
+- Glowing effects on buttons and cards
+- Rank badges with dynamic styling
+- Responsive tournament cards
+- Interactive hover states
+
+JavaScript Features:
+- Dynamic category switching
+- Game search with validation
+- Table sorting with order toggle
+- Session storage for search history
+-->
 {% block title %}E-Sports Tournament Hub{% endblock %}
 {% block content %}
 
@@ -250,7 +275,7 @@ function sortTable(sortBy) {
             <div class="text-center">
                 <i class="fa fa-calendar-times fa-3x text-muted mb-3"></i>
                 <p class="text-muted">No upcoming tournaments available at the moment.</p>
-                {% if current_user.is_authenticated %}
+                {% if current_user.is_authenticated and current_user.is_admin %}
                 <a href="{{ url_for('views.tournament_create') }}" class="btn btn-primary btn-glow">Create Tournament</a>
                 {% endif %}
             </div>

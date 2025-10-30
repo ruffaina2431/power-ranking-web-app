@@ -1,8 +1,31 @@
-{% extends "base.html" %} 
+{% extends "base.html" %}
+<!-- 
+Sign Up Template
+
+This template provides the user registration form for new users.
+Features:
+- Form validation for required fields
+- Password confirmation
+- Email validation
+- Bootstrap styling for form elements
+
+Form Fields:
+- Username: User's chosen username
+- First Name: User's first name
+- Last Name: User's last name
+- Email: User's email address (must be unique)
+- Password: User's password (minimum 7 characters)
+- Confirm Password: Password confirmation
+
+Security Features:
+- Client-side validation for required fields
+- Password confirmation matching
+- Server-side validation via auth.py
+-->
 {% block title %} Sign up {% endblock %} 
 {% block content %} 
 
-<h1>THIS IS THE sign up PAGE</h1> 
+<h1>sign up</h1> 
 <form method="POST">
     <div class="form-group">
         <label for="username">Username</label>

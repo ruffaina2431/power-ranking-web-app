@@ -1,5 +1,32 @@
 {% extends "base.html" %}
+<!-- 
+Team Detail Template
 
+This template displays detailed information about a specific team.
+Features:
+- Team statistics display
+- Player roster management
+- Date formatting
+- Action buttons for team/player management
+
+Displayed Information:
+- Team Name: Team's unique identifier
+- Captain Phone: Contact information
+- Points: Team's earned points
+- Wins: Team's victory count
+- Rank: Current team ranking
+- Creation Date: Team registration date
+
+Player List Features:
+- Tabulated player display
+- Join dates for each player
+- Player edit functionality
+- Empty state handling
+
+Navigation:
+- Back button to team list
+- Edit links for player management
+-->
 {% block title %}{{ team.name }}{% endblock %}
 
 {% block content %}
@@ -11,7 +38,6 @@
 <p><strong>Created:</strong> {{ team.created_date.strftime('%Y-%m-%d') }}</p>
 
 <h2>Players</h2>
-<a href="{{ url_for('views.add_player', team_id=team.id) }}" class="btn btn-success mb-3">Add Player</a>
 {% if team.players %}
 <table class="table table-striped">
     <thead>
@@ -28,9 +54,6 @@
             <td>{{ player.join_date.strftime('%Y-%m-%d') }}</td>
             <td>
                 <a href="{{ url_for('views.edit_player', player_id=player.id) }}" class="btn btn-sm btn-warning">Edit</a>
-                <form method="POST" action="{{ url_for('views.delete_player', player_id=player.id) }}" style="display:inline;">
-                    <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure?')">Delete</button>
-                </form>
             </td>
         </tr>
         {% endfor %}

@@ -1,4 +1,23 @@
 <!DOCTYPE html>
+<!-- 
+Base Template for E-Sports Tournament Hub
+
+This template serves as the foundation for all pages in the application.
+Features:
+- Responsive navigation bar with dynamic menu items based on user authentication
+- Bootstrap 4 with Darkly theme for consistent dark mode UI
+- Flash message system for user notifications
+- Responsive design with mobile-first approach
+
+Template Blocks:
+- title: Page title (defaults to "Home")
+- content: Main content area for child templates
+
+Navigation:
+- Authenticated users see: My Teams, Home, Logout
+- Admin users also see: Tournaments, Manage Rankings
+- Non-authenticated users see: Login, Sign Up, Home
+-->
 <html>
 <head>
     <meta charset="UTF-8">
@@ -26,7 +45,10 @@
           <div class="navbar-nav">
             {% if current_user.is_authenticated %}
               <a class="nav-item nav-link" href="/teams">My Teams</a>
+              {% if current_user.is_admin %}
               <a class="nav-item nav-link" href="/tournaments">Tournaments</a>
+              <a class="nav-item nav-link" href="/manage-rankings">Manage Rankings</a>
+              {% endif %}
               <a class="nav-item nav-link" href="/">Home</a>
             {% else %}
               <a class="nav-item nav-link" id="login" href="/login">Login</a>

@@ -11,10 +11,10 @@ Components configured:
 - Database models and table creation
 """
 
+from os import path
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
-from os import path
 
 # Initialize SQLAlchemy instance without binding it to an app yet
 db = SQLAlchemy()
@@ -31,38 +31,33 @@ def create_app():
     """
     # Initialize Flask application
     app = Flask(__name__)
-    
+
     # Configure secret key and database
     app.config['SECRET_KEY'] = 'pythonwebappsecretkey'
     app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://root@localhost/' + DB_NAME
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-    
+
     # Initialize database with this application
     db.init_app(app)
-    
+
     # Import blueprints
-    from .views import views
-    from .auth import auth
-    
+    from . import views, auth, models  # noqa: E402
+
     # Register blueprints with the application
-    app.register_blueprint(views, url_prefix='/')
-    app.register_blueprint(auth, url_prefix='/')
-    
-    # Import models and create database tables
-    from .models import User, Team, Player, Tournament, TournamentRegistration
-    
+    app.register_blueprint(views.views, url_prefix='/')
+    app.register_blueprint(auth.auth, url_prefix='/')
+
     # Create database tables
     with app.app_context():
         db.create_all()
-        
+
     # Configure login manager
     login_manager = LoginManager()
     login_manager.login_view = 'auth.login'
     login_manager.init_app(app)
-    
-    @login_manager.user_loader
-    def load_user(id):
-        from .models import User
-        return User.query.get(int(id))
-    
+
+    @login_manager.user_loader  # noqa: E402
+    def load_user(user_id):  # noqa: E402
+        return models.User.query.get(int(user_id))  # noqa: E402
+
     return app

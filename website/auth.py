@@ -31,6 +31,10 @@ def login():
         email = request.form.get('email')
         password = request.form.get('password')
 
+        if not email or not password:
+            flash('Email and password are required.', category='error')
+            return render_template("login.html", boolean=True)
+
         user = User.query.filter_by(email=email).first()
         if user:
             if check_password_hash(user.password, password):
@@ -76,15 +80,17 @@ def signup():
     if request.method == 'POST':
         # Get form data
         email = request.form.get('email')
-        firstName = request.form.get('firstname')
+        first_name = request.form.get('firstname')
         password1 = request.form.get('password1')
         password2 = request.form.get('password2')
 
         # Validate form data
-        if len(email) < 4:
+        if not email or len(email) < 4:
             flash('Email must be greater than 3 characters.', category='error')
-        elif len(firstName) < 2:
+        elif not first_name or len(first_name) < 2:
             flash('First name must be greater than 1 character.', category='error')
+        elif not password1 or not password2:
+            flash('Passwords are required.', category='error')
         elif password1 != password2:
             flash('Passwords don\'t match.', category='error')
         elif len(password1) < 7:
@@ -98,13 +104,12 @@ def signup():
                 # Create new user
                 new_user = User(
                     email=email,
-                    first_name=firstName,
+                    first_name=first_name,
                     password=generate_password_hash(password1, method='pbkdf2:sha256')
                 )
                 db.session.add(new_user)
                 db.session.commit()
-                login_user(new_user, remember=True)
-                flash('Account created!', category='success')
-                return redirect(url_for('views.home'))
+                flash('Account created! Please log in.', category='success')
+                return redirect(url_for('auth.login'))
 
     return render_template("sign_up.html")
