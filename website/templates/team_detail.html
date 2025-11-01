@@ -30,38 +30,181 @@ Navigation:
 {% block title %}{{ team.name }}{% endblock %}
 
 {% block content %}
-<h1>{{ team.name }}</h1>
-<p><strong>Captain Phone:</strong> {{ team.captain_phone }}</p>
-<p><strong>Points:</strong> {{ team.points }}</p>
-<p><strong>Wins:</strong> {{ team.wins }}</p>
-<p><strong>Rank:</strong> {{ team.rank }}</p>
-<p><strong>Created:</strong> {{ team.created_date.strftime('%Y-%m-%d') }}</p>
+<div class="row mt-5">
+    <div class="col-lg-4 mb-4">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <h2 class="card-title mb-1">{{ team.name }}</h2>
+                        <p class="text-muted mb-2"><i class="fa fa-phone mr-2"></i> Captain: {{ team.captain_phone or '—' }}</p>
+                    </div>
+                    <div class="text-right">
+                        <a href="{{ url_for('views.team_edit', team_id=team.id) }}" class="btn btn-sm btn-outline-warning" title="Edit team"><i class="fa fa-pencil"></i></a>
+                        <form method="POST" action="{{ url_for('views.team_delete', team_id=team.id) }}" style="display:inline-block;">
+                            <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete team" onclick="return confirm('Delete team? This cannot be undone.');"><i class="fa fa-trash"></i></button>
+                        </form>
+                    </div>
+                </div>
 
-<h2>Players</h2>
-{% if team.players %}
-<table class="table table-striped">
-    <thead>
-        <tr>
-            <th>Name</th>
-            <th>Join Date</th>
-            <th>Actions</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for player in team.players %}
-        <tr>
-            <td>{{ player.name }}</td>
-            <td>{{ player.join_date.strftime('%Y-%m-%d') }}</td>
-            <td>
-                <a href="{{ url_for('views.edit_player', player_id=player.id) }}" class="btn btn-sm btn-warning">Edit</a>
-            </td>
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
-{% else %}
-<p>No players yet.</p>
-{% endif %}
+                <hr>
 
-<a href="{{ url_for('views.teams') }}" class="btn btn-secondary">Back to Teams</a>
+                <div class="d-flex flex-wrap gap-2">
+                    <span class="badge badge-pill badge-success mr-2">Points: <strong class="ml-1">{{ team.points or 0 }}</strong></span>
+                    <span class="badge badge-pill badge-info mr-2">Wins: <strong class="ml-1">{{ team.wins or 0 }}</strong></span>
+                    <span class="badge badge-pill badge-primary mr-2">Rank: <strong class="ml-1">{{ team.rank or '—' }}</strong></span>
+                </div>
+
+                <p class="text-muted small mt-3">Created: {{ team.created_date.strftime('%Y-%m-%d') }}</p>
+
+                <div class="mt-3">
+                    <a href="{{ url_for('views.teams') }}" class="btn btn-block btn-secondary">← Back to Teams</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-8">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h3 class="mb-0">Players</h3>
+            <small class="text-muted">Total: {{ team.players|length }}</small>
+        </div>
+
+        {% if team.players %}
+            <div class="list-group">
+                {% for player in team.players %}
+                    <div class="list-group-item list-group-item-dark d-flex justify-content-between align-items-center">
+                        <div>
+                            <div class="font-weight-bold text-white player-name" data-player-id="{{ player.id }}">{{ player.name }}</div>
+                        </div>
+                        <div class="btn-group btn-group-sm" role="group">
+                            <button type="button" class="btn btn-sm btn-outline-warning edit-player-btn" data-player-id="{{ player.id }}" data-player-name="{{ player.name }}">Edit</button>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="card bg-dark text-white">
+                <div class="card-body">
+                    <h5 class="card-title">No players yet</h5>
+                    <p class="card-text text-muted">This team doesn't have any players added. Once players join, they'll appear here.</p>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Modal for editing player name -->
+<div class="modal fade" id="editPlayerModal" tabindex="-1" role="dialog" aria-labelledby="editPlayerModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editPlayerModalLabel">Edit Player Name</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <form id="editPlayerForm">
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="playerName">Player Name</label>
+                        <input type="text" class="form-control" id="playerName" name="name" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Small style tweak to keep list-group items compact on dark theme -->
+<style>
+    .list-group-item-dark { background-color: #2b2b2b; border-color: #333; }
+    .badge-pill strong { font-weight: 600; }
+</style>
+
+<script>
+// Define showToast function globally
+function showToast(message, type) {
+    var toastHtml = '<div class="toast" role="alert" aria-live="assertive" aria-atomic="true" data-delay="5000">' +
+        '<div class="toast-body d-flex justify-content-between align-items-center ' +
+        (type === 'success' ? 'bg-success text-white' : 'bg-danger text-white') + '">' +
+        '<div class="toast-message">' + message + '</div>' +
+        '<button type="button" class="ml-3 mb-0 close text-white" data-dismiss="toast" aria-label="Close"><span aria-hidden="true">&times;</span></button>' +
+        '</div></div>';
+    $('#toast-container').append(toastHtml);
+    $('.toast').toast('show');
+    $('.toast').on('hidden.bs.toast', function () { $(this).remove(); });
+}
+
+// Initialize player edit functionality when document is ready
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('Initializing player edit functionality');
+    var currentPlayerId;
+
+    // Handle edit button click
+    $('.edit-player-btn').on('click', function() {
+        console.log('Edit button clicked');
+        currentPlayerId = $(this).data('player-id');
+        var playerName = $(this).data('player-name');
+        console.log('Player ID:', currentPlayerId, 'Name:', playerName);
+        $('#playerName').val(playerName);
+        
+        // Debug modal element
+        console.log('Modal element exists:', $('#editPlayerModal').length > 0);
+        console.log('Bootstrap modal function exists:', typeof $('#editPlayerModal').modal === 'function');
+        
+        $('#editPlayerModal').modal('show');
+        console.log('Modal show called');
+    });
+
+    // Handle form submission
+    $('#editPlayerForm').on('submit', function(e) {
+        e.preventDefault();
+        var newName = $('#playerName').val().trim();
+
+        if (!newName) {
+            showToast('Player name cannot be empty.', 'error');
+            return;
+        }
+
+        console.log('Submitting AJAX for player ID:', currentPlayerId, 'New name:', newName);
+
+        $.ajax({
+            url: '{{ url_for("views.edit_player", player_id=0) }}'.replace('0', currentPlayerId),
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify({ name: newName }),
+            success: function(response) {
+                console.log('AJAX success:', response);
+                if (response.success) {
+                    // Update the player name in the DOM
+                    $('.player-name[data-player-id="' + currentPlayerId + '"]').text(response.new_name);
+                    // Update the data attribute for future edits
+                    $('.edit-player-btn[data-player-id="' + currentPlayerId + '"]').data('player-name', response.new_name);
+                    $('#editPlayerModal').modal('hide');
+                    showToast('Player name updated successfully!', 'success');
+                } else {
+                    showToast('Error: ' + response.message, 'error');
+                }
+            },
+            error: function(xhr) {
+                console.log('AJAX error:', xhr);
+                var errorMsg = 'An error occurred while updating the player name.';
+                if (xhr.responseJSON && xhr.responseJSON.message) {
+                    errorMsg = xhr.responseJSON.message;
+                }
+                showToast(errorMsg, 'error');
+            }
+        });
+    });
+    
+    if (typeof jQuery === 'undefined') {
+        console.error('jQuery is not loaded!');
+    }
+});
+</script>
 {% endblock %}

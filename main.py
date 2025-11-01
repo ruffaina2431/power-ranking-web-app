@@ -19,7 +19,7 @@ Application Features:
 3. Tournament System
    - Tournament creation
    - Team registration
-   - Multiple venue support (Point A/B)
+   - Multiple venue support (example Point A/B)
    - Registration status tracking
 
 4. Game Categories

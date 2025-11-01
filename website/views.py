@@ -53,19 +53,26 @@ def home():
     sort_by = request.args.get('sort', 'rank')
     order = request.args.get('order', 'asc')
 
-    # Filter teams based on search category
+    # Filter teams based on search category, only include teams with approved registrations
     if category != 'VALORANT':
         # First try to match game_name
-        teams_query = Team.query.filter(Team.game_name.ilike(f'%{category}%'))
-        
+        teams_query = Team.query.join(TournamentRegistration).filter(
+            TournamentRegistration.status == 'approved',
+            Team.game_name.ilike(f'%{category}%')
+        )
+
         # If no teams found by game_name, then try tournament names as fallback
         if teams_query.first() is None:
             teams_query = Team.query.join(TournamentRegistration).join(Tournament).filter(
+                TournamentRegistration.status == 'approved',
                 Tournament.name.ilike(f'%{category}%')
             ).distinct()
     else:
-        # Default: show VALORANT teams
-        teams_query = Team.query.filter(Team.game_name.ilike('VALORANT'))
+        # Default: show VALORANT teams with approved registrations
+        teams_query = Team.query.join(TournamentRegistration).filter(
+            TournamentRegistration.status == 'approved',
+            Team.game_name.ilike('VALORANT')
+        )
 
     # Apply sorting
     if sort_by == 'rank':
@@ -91,15 +98,18 @@ def home():
 
     teams = teams_query.limit(20).all()
 
-    # Update rankings for the current filtered set
+    # Update rankings for the current filtered set, only for approved registrations
     if category != 'VALORANT':
-        # Rank within the filtered teams
+        # Rank within the filtered teams with approved registrations
         ranked_teams = Team.query.join(TournamentRegistration).join(Tournament).filter(
+            TournamentRegistration.status == 'approved',
             Tournament.name.ilike(f'%{category}%')
         ).distinct().order_by(Team.points.desc(), Team.wins.desc()).all()
     else:
-        # Global rankings
-        ranked_teams = Team.query.order_by(Team.points.desc(), Team.wins.desc()).all()
+        # Global rankings for teams with approved registrations
+        ranked_teams = Team.query.join(TournamentRegistration).filter(
+            TournamentRegistration.status == 'approved'
+        ).distinct().order_by(Team.points.desc(), Team.wins.desc()).all()
 
     for i, team in enumerate(ranked_teams, 1):
         team.rank = i
@@ -217,6 +227,15 @@ def team_detail(team_id):
     team = Team.query.get_or_404(team_id)
     if team.captain_id != current_user.id:
         abort(403)
+
+    # Check for registration status notifications
+    registrations = TournamentRegistration.query.filter_by(team_id=team_id).all()
+    for reg in registrations:
+        if reg.status == 'approved':
+            flash(f'Your team registration for {reg.tournament.name} has been approved!', category='success')
+        elif reg.status == 'rejected':
+            flash(f'Your team registration for {reg.tournament.name} has been rejected!', category='error')
+
     return render_template('team_detail.html', team=team)
 
 @views.route('/team/create', methods=['GET', 'POST'])
@@ -316,37 +335,43 @@ def team_create():
 @views.route('/team/<int:team_id>/edit', methods=['GET', 'POST'])
 @login_required
 def team_edit(team_id):
-    """Edit an existing team."""
+    """Edit a team's details."""
     team = Team.query.get_or_404(team_id)
     if team.captain_id != current_user.id:
         abort(403)
 
-    # Check if team has any registrations
-    has_registrations = TournamentRegistration.query.filter_by(team_id=team_id).first() is not None
-    if has_registrations:
-        flash('Cannot edit team details after registering for a tournament!', category='error')
-        return redirect(url_for('views.team_detail', team_id=team.id))
-
     if request.method == 'POST':
+        team_name = request.form.get('name')
         game_name = request.form.get('game_name')
+        captain_phone = request.form.get('captain_phone')
 
         # Validate required fields
         if not game_name or game_name.strip() == '':
             flash('Please select a game for the team!', category='error')
-            return redirect(url_for('views.team_edit', team_id=team.id))
+            return redirect(url_for('views.team_edit', team_id=team_id))
 
-        team.name = request.form.get('name')
+        if Team.query.filter(Team.name == team_name, Team.id != team_id).first():
+            flash('Team name already exists!', category='error')
+            return redirect(url_for('views.team_edit', team_id=team_id))
+
+        team.name = team_name
         team.game_name = game_name.strip()
-        team.captain_phone = request.form.get('captain_phone')
+        team.captain_phone = captain_phone
         db.session.commit()
         flash('Team updated successfully!', category='success')
-        return redirect(url_for('views.team_detail', team_id=team.id))
+        return redirect(url_for('views.team_detail', team_id=team_id))
 
     # Get available categories from tournament game_names
     categories = db.session.query(Tournament.game_name).distinct().all()  # type: ignore[call-arg]
     categories = [cat[0] for cat in categories]
 
-    return render_template('team_form.html', team=team, action='Edit', categories=categories)
+    return render_template(
+        'team_form.html',
+        action='Edit',
+        team=team,
+        categories=categories,
+        max_players=len(team.players)
+    )
 
 @views.route('/team/<int:team_id>/delete', methods=['POST'])
 @login_required
@@ -372,6 +397,18 @@ def edit_player(player_id):
         abort(403)
 
     if request.method == 'POST':
+        # Check if it's an AJAX request (JSON content type)
+        if request.is_json:
+            data = request.get_json()
+            new_name = data.get('name', '').strip()
+            if not new_name:
+                return {'success': False, 'message': 'Player name cannot be empty.'}, 400
+
+            player.name = new_name
+            db.session.commit()
+            return {'success': True, 'new_name': new_name}
+
+        # Original form-based submission
         player.name = request.form.get('name')
         db.session.commit()
         flash('Player updated successfully!', category='success')
@@ -494,6 +531,28 @@ def tournament_registrations(tournament_id):
     registrations = TournamentRegistration.query.filter_by(tournament_id=tournament_id).all()
     return render_template('tournament_registrations.html', tournament=tournament, registrations=registrations)
 
+@views.route('/approve_registration/<int:reg_id>', methods=['POST'])
+@login_required
+@admin_required
+def approve_registration(reg_id):
+    """Approve a tournament registration."""
+    registration = TournamentRegistration.query.get_or_404(reg_id)
+    registration.status = 'approved'
+    db.session.commit()
+    flash(f'Registration for {registration.team.name} has been approved!', category='success')
+    return redirect(url_for('views.tournament_registrations', tournament_id=registration.tournament_id))
+
+@views.route('/reject_registration/<int:reg_id>', methods=['POST'])
+@login_required
+@admin_required
+def reject_registration(reg_id):
+    """Reject a tournament registration."""
+    registration = TournamentRegistration.query.get_or_404(reg_id)
+    registration.status = 'rejected'
+    db.session.commit()
+    flash(f'Registration for {registration.team.name} has been rejected!', category='error')
+    return redirect(url_for('views.tournament_registrations', tournament_id=registration.tournament_id))
+
 # Admin Rankings Management
 
 @views.route('/manage-rankings')
@@ -501,8 +560,10 @@ def tournament_registrations(tournament_id):
 @admin_required
 def manage_rankings():
     """Admin page to manage team rankings."""
-    # Get teams that have tournament registrations
-    teams = Team.query.join(TournamentRegistration).distinct().all()
+    # Get teams that have approved tournament registrations
+    teams = Team.query.join(TournamentRegistration).filter(
+        TournamentRegistration.status == 'approved'
+    ).distinct().all()
     return render_template('manage_rankings.html', teams=teams)
 
 @views.route('/manage-rankings/<int:team_id>/edit', methods=['GET', 'POST'])

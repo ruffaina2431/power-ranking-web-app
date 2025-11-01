@@ -91,7 +91,7 @@ Styling Notes:
     {% if tournaments %}
     <div class="row">
         {% for tournament in tournaments %}
-        <div class="col-md-6 col-lg-4 mb-4">
+        <div class="col-md-8 col-lg-6 mb-4">
             <div class="tournament-card card h-100">
                 <div class="tournament-header card-header">
                     <h5><i class="fa fa-gamepad mr-2"></i>{{ tournament.name }}</h5>
@@ -102,11 +102,11 @@ Styling Notes:
                         <strong><i class="fa fa-calendar mr-2"></i>Date:</strong> {{ tournament.date.strftime('%B %d, %Y') }}<br>
                         <strong><i class="fa fa-users mr-2"></i>Max Players:</strong> {{ tournament.max_players }}
                     </p>
-                    <div class="btn-group-vertical w-100" role="group">
-                        <a href="{{ url_for('views.tournament_registrations', tournament_id=tournament.id) }}" class="btn btn-info btn-glow"><i class="fa fa-list mr-2"></i>View Registrations</a>
-                        <a href="{{ url_for('views.tournament_edit', tournament_id=tournament.id) }}" class="btn btn-warning btn-glow"><i class="fa fa-edit mr-2"></i>Edit</a>
-                        <form method="POST" action="{{ url_for('views.tournament_delete', tournament_id=tournament.id) }}" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this tournament?')">
-                            <button type="submit" class="btn btn-danger btn-glow w-100"><i class="fa fa-trash mr-2"></i>Delete</button>
+                    <div class="d-flex justify-content-between" role="group">
+                        <a href="{{ url_for('views.tournament_registrations', tournament_id=tournament.id) }}" class="btn btn-info btn-glow flex-fill mr-2 text-nowrap"><i class="fa fa-list mr-2"></i>View Registrations</a>
+                        <a href="{{ url_for('views.tournament_edit', tournament_id=tournament.id) }}" class="btn btn-warning btn-glow flex-fill mr-2 text-nowrap"><i class="fa fa-edit mr-2"></i>Edit</a>
+                        <form method="POST" action="{{ url_for('views.tournament_delete', tournament_id=tournament.id) }}" style="display:inline; flex: 1;" onsubmit="return confirm('Are you sure you want to delete this tournament?')">
+                            <button type="submit" class="btn btn-danger btn-glow w-100 text-nowrap"><i class="fa fa-trash mr-2"></i>Delete</button>
                         </form>
                     </div>
                 </div>

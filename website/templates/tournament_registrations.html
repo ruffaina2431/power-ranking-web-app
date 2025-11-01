@@ -88,7 +88,6 @@ Display Components:
 }
 .table-hover tbody tr:hover {
     background-color: rgba(0, 212, 255, 0.1);
-    transform: scale(1.02);
     transition: all 0.3s ease;
 }
 </style>
@@ -124,6 +123,7 @@ Display Components:
                             <th><i class="fa fa-user mr-2"></i>Captain</th>
                             <th><i class="fa fa-calendar-check mr-2"></i>Registration Date</th>
                             <th><i class="fa fa-info-circle mr-2"></i>Status</th>
+                            <th><i class="fa fa-cogs mr-2"></i>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -136,6 +136,22 @@ Display Components:
                                 <span class="status-badge status-{{ reg.status.lower() }}">
                                     {{ reg.status }}
                                 </span>
+                            </td>
+                            <td>
+                                {% if current_user.is_admin %}
+                                <div class="mt-2">
+                                    {% if reg.status == 'pending' %}
+                                    <form action="{{ url_for('views.approve_registration', reg_id=reg.id) }}" method="post" class="d-inline">
+                                        <button type="submit" class="btn btn-success btn-sm btn-glow">Approve</button>
+                                    </form>
+                                    <form action="{{ url_for('views.reject_registration', reg_id=reg.id) }}" method="post" class="d-inline ml-2">
+                                        <button type="submit" class="btn btn-danger btn-sm btn-glow">Reject</button>
+                                    </form>
+                                    {% endif %}
+                                    
+                                </div>
+
+                                {% endif %}
                             </td>
                         </tr>
                         {% endfor %}

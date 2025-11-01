@@ -99,8 +99,10 @@ Form Validation:
                             <label for="location"><i class="fa fa-map-marker mr-2"></i>Location</label>
                             <select class="form-control" id="location" name="location" required>
                                 <option value="" disabled selected>Select location</option>
-                                <option value="point-a" {% if tournament and tournament.location == 'point-a' %}selected{% endif %}>Point A</option>
-                                <option value="point-b" {% if tournament and tournament.location == 'point-b' %}selected{% endif %}>Point B</option>
+                                <option value="kdm-Guadalupe" {% if tournament and tournament.location == 'kdm-Guadalupe' %}selected{% endif %}>KDM Guadalupe</option>
+                                <option value="kdm-Caloocan" {% if tournament and tournament.location == 'kdm-Caloocan' %}selected{% endif %}>KDM Caloocan</option>
+                                <option value="kdm-Comembo" {% if tournament and tournament.location == 'kdm-Comembo' %}selected{% endif %}>KDM Comembo</option>
+                                <option value="kdm-Valenzuela" {% if tournament and tournament.location == 'kdm-Valenzuela' %}selected{% endif %}>KDM Valenzuela</option>
                             </select>
                         </div>
                         <div class="form-group">
