@@ -71,9 +71,5 @@ The database tables are defined in `website/models.py` (SQLAlchemy models). Key 
 - TournamentRegistration
   - id, tournament_id, team_id, registration_date, status
 
-Notes about migrations and schema
----------------------------------
-- This project currently calls `db.create_all()` at app startup in `website/__init__.py`. That will create missing tables for the current models but is not a substitute for proper migrations.
-- For production or evolving schema, use Alembic (Flask-Migrate) to track migrations. If you'd like, I can add a `Flask-Migrate` setup and initial migration files.
 
 
