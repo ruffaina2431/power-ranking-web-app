@@ -62,7 +62,7 @@ tournament_form.html
 │   ├── Name
 │   ├── Date
 │   ├── Location
-│   └── Max Teams
+│   └── Max players
 └── Submit Button
 
 tournament_list.html
@@ -101,3 +101,4 @@ tournament_registrations.html
 - Card layouts
 - Status indicators
 - Sort indicators
+

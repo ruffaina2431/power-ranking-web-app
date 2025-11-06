@@ -262,7 +262,14 @@ function sortTable(sortBy) {
                                 </ul>
                             </p>
                             {% if current_user.is_authenticated %}
-                            <a href="{{ url_for('views.team_create', game_name=tournament.game_name, tournament_location=tournament.location) }}" class="btn btn-glow btn-block" style="background: linear-gradient(90deg, #BF092F, #3B9797); border: none;">Create Team & Register</a>
+                            <div class="row">
+                                <div class="col-6">
+                                    <a href="{{ url_for('views.team_create', game_name=tournament.game_name, tournament_location=tournament.location) }}" class="btn btn-glow btn-block" style="background: linear-gradient(90deg, #BF092F, #3B9797); border: none;">Create Team & Register</a>
+                                </div>
+                                <div class="col-6">
+                                    <a href="{{ url_for('views.tournament_join', location=tournament.location) }}" class="btn btn-glow btn-block" style="background: linear-gradient(90deg, #3B9797, #BF092F); border: none;">Join with Existing Team</a>
+                                </div>
+                            </div>
                             {% else %}
                             <a href="/login" class="btn btn-glow btn-block" style="background: linear-gradient(90deg, #BF092F, #3B9797); border: none;">Login to Register</a>
                             {% endif %}

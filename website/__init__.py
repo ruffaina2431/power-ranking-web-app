@@ -34,7 +34,7 @@ def create_app():
 
     # Configure secret key and database
     app.config['SECRET_KEY'] = 'pythonwebappsecretkey'
-    app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://root@localhost/' + DB_NAME
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root@localhost/' + DB_NAME
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
     # Initialize database with this application

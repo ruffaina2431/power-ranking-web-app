@@ -119,6 +119,7 @@ class Tournament(db.Model):
     location = db.Column(db.String(50))  # example 'point-a' or 'point-b'
     date = db.Column(db.DateTime(timezone=True))
     max_players = db.Column(db.Integer)
+    archived = db.Column(db.Boolean, default=False)
     registrations = db.relationship('TournamentRegistration', backref='tournament', lazy=True)
 
     def __init__(

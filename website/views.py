@@ -118,7 +118,8 @@ def home():
     # Get all upcoming tournaments
     # pylint: disable=E1102
     upcoming_tournaments = Tournament.query.filter(
-        Tournament.date >= func.now()
+        Tournament.date >= func.now(),
+        Tournament.archived == False
     ).order_by(Tournament.date.asc()).all()
 
     # Get available categories from tournament game_names
@@ -188,6 +189,17 @@ def tournament_register(location):
             flash(f'Cannot register for this tournament! Team game ({team.game_name}) does not match tournament game ({tournament.game_name}).', category='error')
             return redirect(url_for('views.home'))
 
+        # Check if team is eligible to join (not approved in any active tournament)
+        active_approved_reg = TournamentRegistration.query.join(Tournament).filter(
+            TournamentRegistration.team_id == team.id,
+            TournamentRegistration.status == 'approved',
+            Tournament.archived == False
+        ).first()
+
+        if active_approved_reg:
+            flash('Your team is already approved for an active tournament. You cannot join another until it is archived.', category='error')
+            return redirect(url_for('views.home'))
+
         # Check if already registered
         existing_reg = TournamentRegistration.query.filter_by(
             tournament_id=tournament.id,
@@ -210,6 +222,85 @@ def tournament_register(location):
         return redirect(url_for('views.home'))
     else:
         return redirect(url_for('views.home'))
+
+@views.route('/tournament-join/<location>', methods=['GET', 'POST'])
+@login_required
+def tournament_join(location):
+    """Allow user to join a tournament with an existing team."""
+    if current_user.is_admin:
+        flash('Admins cannot join tournaments!', category='error')
+        return redirect(url_for('views.home'))
+
+    tournament = Tournament.query.filter_by(
+        location=location,
+    ).order_by(Tournament.date.desc()).first()
+
+    if not tournament:
+        flash('No upcoming tournament found for this location!', category='error')
+        return redirect(url_for('views.home'))
+
+    if request.method == 'POST':
+        team_id = request.form.get('team_id')
+        if not team_id:
+            flash('Please select a team!', category='error')
+            return redirect(url_for('views.tournament_join', location=location))
+
+        team = Team.query.filter_by(id=team_id, captain_id=current_user.id).first()
+        if not team:
+            flash('Invalid team selected!', category='error')
+            return redirect(url_for('views.tournament_join', location=location))
+
+        # Validate game_name match
+        if team.game_name != tournament.game_name:
+            flash(f'Cannot join this tournament! Team game ({team.game_name}) does not match tournament game ({tournament.game_name}).', category='error')
+            return redirect(url_for('views.tournament_join', location=location))
+
+        # Check if team is eligible to join (not approved in any active tournament)
+        active_approved_reg = TournamentRegistration.query.join(Tournament).filter(
+            TournamentRegistration.team_id == team.id,
+            TournamentRegistration.status == 'approved',
+            Tournament.archived == False
+        ).first()
+
+        if active_approved_reg:
+            flash('This team is already approved for an active tournament. You cannot join another until it is archived.', category='error')
+            return redirect(url_for('views.tournament_join', location=location))
+
+        # Check if already registered
+        existing_reg = TournamentRegistration.query.filter_by(
+            tournament_id=tournament.id,
+            team_id=team.id
+        ).first()
+
+        if existing_reg:
+            flash('This team is already registered for this tournament!', category='error')
+            return redirect(url_for('views.tournament_join', location=location))
+
+        # Register for tournament
+        registration = TournamentRegistration()
+        registration.tournament_id = tournament.id
+        registration.team_id = team.id
+
+        db.session.add(registration)
+        db.session.commit()
+
+        flash('Successfully joined the tournament with your existing team!', category='success')
+        return redirect(url_for('views.home'))
+
+    # GET: Show form to select team
+    # Get user's teams that are eligible (not approved in any active tournament)
+    eligible_teams = []
+    user_teams = Team.query.filter_by(captain_id=current_user.id).all()
+    for team in user_teams:
+        active_approved_reg = TournamentRegistration.query.join(Tournament).filter(
+            TournamentRegistration.team_id == team.id,
+            TournamentRegistration.status == 'approved',
+            Tournament.archived == False
+        ).first()
+        if not active_approved_reg and team.game_name == tournament.game_name:
+            eligible_teams.append(team)
+
+    return render_template('tournament_join.html', tournament=tournament, eligible_teams=eligible_teams)
 
 # CRUD for Teams
 
@@ -258,53 +349,63 @@ def team_create():
             flash('Please select a game for the team!', category='error')
             return redirect(url_for('views.team_create'))
 
-        if Team.query.filter_by(name=team_name).first():
-            flash('Team name already exists!', category='error')
-            return redirect(url_for('views.team_create'))
+        # Check if a team with this name already exists (case-insensitive)
+        existing_team = Team.query.filter(Team.name.ilike(team_name)).first()
 
-        # Collect player names
-        players = []
-        for i in range(1, max_players + 1):
-            player_name = request.form.get(f'player{i}')
-            if not player_name or player_name.strip() == '':
-                flash(f'Player {i} name is required!', category='error')
-                return redirect(url_for('views.team_create'))
-            players.append(player_name.strip())
-
-        new_team = Team()
-        new_team.name = team_name
-        new_team.game_name = game_name.strip()
-        new_team.captain_id = current_user.id
-        new_team.captain_phone = captain_phone
-        db.session.add(new_team)
-        db.session.commit()
-
-        # Add players to the team
-        for player_name in players:
-            new_player = Player()
-            new_player.name = player_name
-            new_player.team = new_team
-            db.session.add(new_player)
-        db.session.commit()
-
-        # If tournament_location is provided, register for the tournament
-        if tournament_location:
-            tournament = Tournament.query.filter_by(
-                location=tournament_location,
-            ).order_by(Tournament.date.desc()).first()
-            if tournament and tournament.game_name == new_team.game_name:
-                registration = TournamentRegistration()
-                registration.tournament_id = tournament.id
-                registration.team_id = new_team.id
-                db.session.add(registration)
-                db.session.commit()
-                flash(f'Team created with {max_players} players and registered for tournament successfully!', category='success')
+        if existing_team:
+            if existing_team.captain_id == current_user.id:
+                # ✅ Same user, same team — reuse it
+                flash('This team already exists under your account. Redirecting to existing team.', category='info')
+                return redirect(url_for('views.team_detail', team_id=existing_team.id))
             else:
-                flash(f'Team created with {max_players} players successfully! (Tournament registration failed - game mismatch)', category='warning')
+                # 🚫 Another user already owns this team name
+                flash('Team name already exists under another account!', category='error')
+                return redirect(url_for('views.team_create'))
         else:
-            flash(f'Team created with {max_players} players successfully!', category='success')
+            # 🆕 Create a new team if it doesn't exist
+            new_team = Team()
+            new_team.name = team_name
+            new_team.game_name = game_name.strip()
+            new_team.captain_id = current_user.id
+            new_team.captain_phone = captain_phone
+            db.session.add(new_team)
+            db.session.commit()
 
-        return redirect(url_for('views.teams'))
+            # Collect player names
+            players = []
+            for i in range(1, max_players + 1):
+                player_name = request.form.get(f'player{i}')
+                if not player_name or player_name.strip() == '':
+                    flash(f'Player {i} name is required!', category='error')
+                    return redirect(url_for('views.team_create'))
+                players.append(player_name.strip())
+
+            # Add players to the team
+            for player_name in players:
+                new_player = Player()
+                new_player.name = player_name
+                new_player.team = new_team
+                db.session.add(new_player)
+            db.session.commit()
+
+            # If tournament_location is provided, register for the tournament
+            if tournament_location:
+                tournament = Tournament.query.filter_by(
+                    location=tournament_location,
+                ).order_by(Tournament.date.desc()).first()
+                if tournament and tournament.game_name == new_team.game_name:
+                    registration = TournamentRegistration()
+                    registration.tournament_id = tournament.id
+                    registration.team_id = new_team.id
+                    db.session.add(registration)
+                    db.session.commit()
+                    flash(f'Team created with {max_players} players and registered for tournament successfully!', category='success')
+                else:
+                    flash(f'Team created with {max_players} players successfully! (Tournament registration failed - game mismatch)', category='warning')
+            else:
+                flash(f'Team created with {max_players} players successfully!', category='success')
+
+            return redirect(url_for('views.teams'))
 
     # Get available categories from tournament game_names
     categories = db.session.query(Tournament.game_name).distinct().all()  # type: ignore[call-arg]
@@ -350,7 +451,7 @@ def team_edit(team_id):
             flash('Please select a game for the team!', category='error')
             return redirect(url_for('views.team_edit', team_id=team_id))
 
-        if Team.query.filter(Team.name == team_name, Team.id != team_id).first():
+        if Team.query.filter(Team.name.ilike(team_name), Team.id != team_id).first():
             flash('Team name already exists!', category='error')
             return redirect(url_for('views.team_edit', team_id=team_id))
 
@@ -425,7 +526,7 @@ def edit_player(player_id):
 @admin_required
 def tournaments():
     """List all tournaments."""
-    all_tournaments = Tournament.query.all()
+    all_tournaments = Tournament.query.filter_by(archived=False).all()
     return render_template('tournament_list.html', tournaments=all_tournaments)
 
 @views.route('/tournament/create', methods=['GET', 'POST'])
@@ -498,16 +599,16 @@ def tournament_edit(tournament_id):
 
     return render_template('tournament_form.html', tournament=tournament, action='Edit')
 
-@views.route('/tournament/<int:tournament_id>/delete', methods=['POST'])
+@views.route('/tournament/<int:tournament_id>/archive', methods=['POST'])
 @login_required
 @admin_required
-def tournament_delete(tournament_id):
-    """Delete a tournament."""
+def tournament_archive(tournament_id):
+    """Archive a tournament."""
     tournament = Tournament.query.get_or_404(tournament_id)
 
-    db.session.delete(tournament)
+    tournament.archived = True
     db.session.commit()
-    flash('Tournament deleted successfully!', category='success')
+    flash('Tournament archived successfully!', category='success')
     return redirect(url_for('views.tournaments'))
 
 @views.route('/api/tournament/<location>')
@@ -517,6 +618,7 @@ def api_tournament_details(location):
     tournament = Tournament.query.filter(
         Tournament.location == location,
         Tournament.date >= func.now(),
+        Tournament.archived == False,
         Tournament.game_name.in_(['VALORANT', 'CS2'])
     ).order_by(Tournament.date.desc()).first()
     if tournament:
