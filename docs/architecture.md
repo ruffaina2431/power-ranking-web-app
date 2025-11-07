@@ -5,15 +5,22 @@ The E-Sports Tournament Hub is a Flask-based web application that manages e-spor
 
 ## Project Structure
 ```
-py web app/
+power-ranking-web-app/
 ├── main.py                 # Application entry point
+├── README.md               # Project documentation
+├── requirements.txt        # Python dependencies
+├── setup_venv.ps1          # Virtual environment setup script
+├── docs/                   # Documentation files
+│   ├── architecture.md     # This file
+│   ├── templates.md        # Template documentation
+│   └── user_flows.md       # User flow documentation
 ├── website/                # Main application package
-│   ├── __init__.py        # App initialization and configuration
-│   ├── auth.py            # Authentication routes and logic
-│   ├── models.py          # Database models
-│   ├── views.py           # Main application routes
-│   ├── static/            # Static files (CSS, JS, images)
-│   └── templates/         # Jinja2 HTML templates
+│   ├── __init__.py         # App initialization and configuration
+│   ├── auth.py             # Authentication routes and logic
+│   ├── models.py           # Database models
+│   ├── views.py            # Main application routes
+│   └── templates/          # Jinja2 HTML templates
+└── .gitignore              # Git ignore file
 ```
 
 ## Key Components
@@ -91,32 +98,39 @@ User
 ├── id (Primary Key)
 ├── email (Unique)
 ├── password (Hashed)
-└── first_name
+├── first_name
+└── is_admin (Boolean, default False)
 
 Team
 ├── id (Primary Key)
-├── name
+├── name (Unique constraint)
 ├── captain_id (Foreign Key -> User)
+├── captain_phone
+├── points (Integer, default 0)
+├── wins (Integer, default 0)
+├── rank (Integer)
 ├── game_name
-├── points
-├── wins
-└── rank
+└── created_date (DateTime, default now)
 
 Player
 ├── id (Primary Key)
 ├── name
-└── team_id (Foreign Key -> Team)
+├── team_id (Foreign Key -> Team)
+└── join_date (DateTime, default now)
 
 Tournament
 ├── id (Primary Key)
 ├── name
-├── location
-├── date
-└── max_players
+├── game_name
+├── location (e.g., 'point-a', 'point-b')
+├── date (DateTime)
+├── max_players (Integer)
+└── archived (Boolean, default False)
 
 TournamentRegistration
 ├── id (Primary Key)
 ├── tournament_id (Foreign Key -> Tournament)
 ├── team_id (Foreign Key -> Team)
-└── status
+├── registration_date (DateTime, default now)
+└── status (String: 'pending', 'approved', 'rejected')
 ```
