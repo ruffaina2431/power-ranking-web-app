@@ -29,6 +29,7 @@ from flask import Blueprint, render_template, request, flash, redirect, url_for,
 from flask_login import login_required, current_user
 from sqlalchemy.sql import func
 from functools import wraps
+from datetime import datetime
 
 from .models import Team, Player, Tournament, TournamentRegistration
 from . import db
@@ -538,8 +539,25 @@ def tournament_create():
         name = request.form.get('name')
         game_name = request.form.get('game_name')
         location = request.form.get('location')
-        date = request.form.get('date')
+        date_str = request.form.get('date')
         max_players_str = request.form.get('max_players')
+
+        # Validate date is present
+        if not date_str or date_str.strip() == '':
+            flash('Please enter the date of the event!', category='error')
+            return redirect(url_for('views.tournament_create'))
+
+        # Parse and validate date
+        try:
+            tournament_date = datetime.fromisoformat(date_str.replace('T', ' '))
+        except ValueError:
+            flash('Invalid date format!', category='error')
+            return redirect(url_for('views.tournament_create'))
+
+        # Check if date is in the past
+        if tournament_date < datetime.now():
+            flash('Please enter a future date!', category='error')
+            return redirect(url_for('views.tournament_create'))
 
         if not max_players_str:
             flash('Max players is required!', category='error')
@@ -555,7 +573,7 @@ def tournament_create():
         new_tournament.name = name
         new_tournament.game_name = game_name
         new_tournament.location = location
-        new_tournament.date = date
+        new_tournament.date = tournament_date
         new_tournament.max_players = max_players
         db.session.add(new_tournament)
         db.session.commit()
@@ -575,8 +593,25 @@ def tournament_edit(tournament_id):
         name = request.form.get('name')
         game_name = request.form.get('game_name')
         location = request.form.get('location')
-        date = request.form.get('date')
+        date_str = request.form.get('date')
         max_players_str = request.form.get('max_players')
+
+        # Validate date is present
+        if not date_str or date_str.strip() == '':
+            flash('Please enter the date of the event!', category='error')
+            return redirect(url_for('views.tournament_edit', tournament_id=tournament_id))
+
+        # Parse and validate date
+        try:
+            tournament_date = datetime.fromisoformat(date_str.replace('T', ' '))
+        except ValueError:
+            flash('Invalid date format!', category='error')
+            return redirect(url_for('views.tournament_edit', tournament_id=tournament_id))
+
+        # Check if date is in the past
+        if tournament_date < datetime.now():
+            flash(' Please enter a future date!', category='error')
+            return redirect(url_for('views.tournament_edit', tournament_id=tournament_id))
 
         if not max_players_str:
             flash('Max players is required!', category='error')
@@ -591,7 +626,7 @@ def tournament_edit(tournament_id):
         tournament.name = name
         tournament.game_name = game_name
         tournament.location = location
-        tournament.date = date
+        tournament.date = tournament_date
         tournament.max_players = max_players
         db.session.commit()
         flash('Tournament updated successfully!', category='success')
@@ -697,5 +732,3 @@ def edit_ranking(team_id):
         return redirect(url_for('views.manage_rankings'))
 
     return render_template('edit_ranking.html', team=team)
-
-
