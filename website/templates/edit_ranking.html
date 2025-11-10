@@ -6,28 +6,17 @@
 
 <style>
 .form-card {
-    border: 1px solid #BF092F;
-    box-shadow: 0 0 15px rgba(191, 9, 47, 0.3);
-    background: linear-gradient(135deg, #132440 0%, #16476A 50%, #132440 100%);
+    border: 1px solid #007bff;
+    box-shadow: 0 0 15px rgba(0, 123, 255, 0.3);
+    background: linear-gradient(135deg, #1e3a5f 0%, #2c5aa0 50%, #1e3a5f 100%);
     color: white;
 }
 .btn-glow {
-    box-shadow: 0 0 10px rgba(191, 9, 47, 0.5);
+    box-shadow: 0 0 10px rgba(0, 123, 255, 0.5);
     transition: box-shadow 0.3s ease;
 }
 .btn-glow:hover {
-    box-shadow: 0 0 20px rgba(191, 9, 47, 0.8);
-}
-.form-control {
-    background-color: #1a1a1a;
-    border: 1px solid #BF092F;
-    color: white;
-}
-.form-control:focus {
-    background-color: #1a1a1a;
-    border-color: #3B9797;
-    box-shadow: 0 0 10px rgba(59, 151, 151, 0.5);
-    color: white;
+    box-shadow: 0 0 20px rgba(0, 123, 255, 0.8);
 }
 </style>
 
@@ -35,7 +24,7 @@
     <div class="row justify-content-center">
         <div class="col-md-6">
             <div class="form-card card">
-                <div class="card-header text-center" style="background: linear-gradient(90deg, #BF092F, #3B9797); color: white;">
+                <div class="card-header text-center" style="background: linear-gradient(90deg, #007bff, #00d4ff); color: white;">
                     <h4><i class="fa fa-edit mr-2"></i>Edit Ranking for {{ team.name }}</h4>
                 </div>
                 <div class="card-body">
@@ -49,7 +38,7 @@
                             <input type="number" class="form-control" id="wins" name="wins" value="{{ team.wins }}" required>
                         </div>
                         <div class="text-center">
-                            <button type="submit" class="btn btn-glow" style="background: linear-gradient(90deg, #BF092F, #3B9797); border: none;"><i class="fa fa-save mr-2"></i>Update Ranking</button>
+                            <button type="submit" class="btn btn-glow" style="background: linear-gradient(90deg, #007bff, #00d4ff); border: none;"><i class="fa fa-save mr-2"></i>Update Ranking</button>
                             <a href="{{ url_for('views.manage_rankings') }}" class="btn btn-secondary btn-glow ml-2"><i class="fa fa-arrow-left mr-2"></i>Back</a>
                         </div>
                     </form>

@@ -19,7 +19,7 @@ Visual Elements:
 
 Status Indicators:
 - Approved: Green badge (#28a745)
-- 
+- Pending: Yellow badge (#ffc107)
 - Rejected: Red badge (#dc3545)
 
 Display Components:
@@ -35,19 +35,20 @@ Display Components:
 
 <style>
 .registration-card {
-    border: 1px solid #00d4ff;
-    box-shadow: 0 0 15px rgba(0, 212, 255, 0.3);
+    border: 1px solid #007bff;
+    box-shadow: 0 0 15px rgba(0, 123, 255, 0.3);
     margin-bottom: 20px;
 }
 .tournament-info {
-    background: linear-gradient(135deg, #132440 0%, #16476A 50%, #132440 100%);
-    border: 2px solid #BF092F;
-    box-shadow: 0 0 20px rgba(191, 9, 47, 0.5);
+    background: linear-gradient(135deg, #1e3a5f 0%, #2c5aa0 50%, #1e3a5f 100%);
+    border: 2px solid #007bff;
+    box-shadow: 0 0 20px rgba(0, 123, 255, 0.5);
     position: relative;
     overflow: hidden;
     padding: 20px;
     margin-bottom: 30px;
     color: white;
+    border-radius: 10px;
 }
 .tournament-info::before {
     content: '';
@@ -56,7 +57,7 @@ Display Components:
     left: 0;
     right: 0;
     bottom: 0;
-    background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="2" fill="%23BF092F" opacity="0.1"/></svg>') repeat;
+    background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="2" fill="%23007bff" opacity="0.1"/></svg>') repeat;
     opacity: 0.1;
 }
 .status-badge {
@@ -80,22 +81,18 @@ Display Components:
     color: white;
 }
 .btn-glow {
-    box-shadow: 0 0 10px rgba(0, 212, 255, 0.5);
+    box-shadow: 0 0 10px rgba(0, 123, 255, 0.5);
     transition: box-shadow 0.3s ease;
 }
 .btn-glow:hover {
-    box-shadow: 0 0 20px rgba(0, 212, 255, 0.8);
-}
-.table-hover tbody tr:hover {
-    background-color: rgba(0, 212, 255, 0.1);
-    transition: all 0.3s ease;
+    box-shadow: 0 0 20px rgba(0, 123, 255, 0.8);
 }
 </style>
 
 <div class="container-fluid mt-4">
     <div class="tournament-info text-center">
-        <i class="fa fa-trophy fa-3x mb-3" style="color: #BF092F;"></i>
-        <h1 style="text-shadow: 0 0 10px #BF092F;">Registrations for {{ tournament.name }}</h1>
+        <i class="fa fa-trophy fa-3x mb-3" style="color: #007bff;"></i>
+        <h1 style="text-shadow: 0 0 10px #007bff;">Registrations for {{ tournament.name }}</h1>
         <div class="row mt-4">
             <div class="col-md-4">
                 <strong><i class="fa fa-map-marker mr-2"></i>Location:</strong> {{ tournament.location|title }}
@@ -148,9 +145,8 @@ Display Components:
                                         <button type="submit" class="btn btn-danger btn-sm btn-glow">Reject</button>
                                     </form>
                                     {% endif %}
-                                    
+                                    <button type="button" class="btn btn-info btn-sm btn-glow mt-1" data-toggle="modal" data-target="#previewModal{{ reg.id }}">Preview Players</button>
                                 </div>
-
                                 {% endif %}
                             </td>
                         </tr>
@@ -171,5 +167,40 @@ Display Components:
         <a href="{{ url_for('views.tournaments') }}" class="btn btn-secondary btn-glow btn-lg"><i class="fa fa-arrow-left mr-2"></i>Back to Tournaments</a>
     </div>
 </div>
+
+<!-- Modals for Player Preview -->
+{% for reg in registrations %}
+<div class="modal fade" id="previewModal{{ reg.id }}" tabindex="-1" role="dialog" aria-labelledby="previewModalLabel{{ reg.id }}" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="previewModalLabel{{ reg.id }}">Players in {{ reg.team.name }}</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    {% for player in reg.team.players %}
+                    <div class="col-md-4 text-center mb-3">
+                        {% if player.image %}
+                        <img src="{{ url_for('static', filename=player.image) }}" alt="{{ player.name }}" class="img-fluid rounded-circle mb-2" style="width: 100px; height: 100px; object-fit: cover;">
+                        {% else %}
+                        <div class="bg-secondary rounded-circle d-inline-block mb-2" style="width: 100px; height: 100px; display: flex; align-items: center; justify-content: center;">
+                            <i class="fa fa-user fa-2x text-white"></i>
+                        </div>
+                        {% endif %}
+                        <p class="mb-0"><strong>{{ player.name }}</strong></p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endfor %}
 
 {% endblock %}

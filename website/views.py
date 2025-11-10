@@ -30,6 +30,8 @@ from flask_login import login_required, current_user
 from sqlalchemy.sql import func
 from functools import wraps
 from datetime import datetime
+import os
+from werkzeug.utils import secure_filename
 
 from .models import Team, Player, Tournament, TournamentRegistration
 from . import db
@@ -345,6 +347,24 @@ def team_create():
         tournament_location = request.form.get('tournament_location')
         max_players = int(request.form.get('max_players', 5))  # Default to 5 if not provided
 
+        # Handle image upload
+        image_path = None
+        if 'image' in request.files:
+            file = request.files['image']
+            if file and file.filename:
+                # Validate file type and size
+                allowed_extensions = {'png', 'jpg', 'jpeg', 'gif'}
+                if '.' in file.filename and file.filename.rsplit('.', 1)[1].lower() in allowed_extensions:
+                    filename = secure_filename(file.filename)
+                    upload_dir = os.path.join('power-ranking-web-app', 'website', 'static', 'uploads', 'teams')
+                    os.makedirs(upload_dir, exist_ok=True)
+                    file_path = os.path.join(upload_dir, filename)
+                    file.save(file_path)
+                    image_path = f'uploads/teams/{filename}'
+                else:
+                    flash('Invalid image file type. Only PNG, JPG, JPEG, and GIF are allowed.', category='error')
+                    return redirect(url_for('views.team_create'))
+
         # Validate required fields
         if not game_name or game_name.strip() == '':
             flash('Please select a game for the team!', category='error')
@@ -369,10 +389,11 @@ def team_create():
             new_team.game_name = game_name.strip()
             new_team.captain_id = current_user.id
             new_team.captain_phone = captain_phone
+            new_team.image = image_path
             db.session.add(new_team)
             db.session.commit()
 
-            # Collect player names
+            # Collect player names and images
             players = []
             for i in range(1, max_players + 1):
                 player_name = request.form.get(f'player{i}')
@@ -387,6 +408,28 @@ def team_create():
                 new_player.name = player_name
                 new_player.team = new_team
                 db.session.add(new_player)
+            db.session.commit()
+
+            # Handle player image uploads
+            for i in range(1, max_players + 1):
+                player_image_key = f'player{i}_image'
+                if player_image_key in request.files:
+                    file = request.files[player_image_key]
+                    if file and file.filename:
+                        # Validate file type
+                        allowed_extensions = {'png', 'jpg', 'jpeg', 'gif'}
+                        if '.' in file.filename and file.filename.rsplit('.', 1)[1].lower() in allowed_extensions:
+                            filename = secure_filename(file.filename)
+                            upload_dir = os.path.join('power-ranking-web-app', 'website', 'static', 'uploads', 'players')
+                            os.makedirs(upload_dir, exist_ok=True)
+                            file_path = os.path.join(upload_dir, filename)
+                            file.save(file_path)
+                            # Find the player and assign the image
+                            player = Player.query.filter_by(team_id=new_team.id, name=players[i-1]).first()
+                            if player:
+                                player.image = f'uploads/players/{filename}'
+                        else:
+                            flash(f'Invalid image file type for Player {i}. Only PNG, JPG, JPEG, and GIF are allowed.', category='error')
             db.session.commit()
 
             # If tournament_location is provided, register for the tournament
@@ -446,6 +489,23 @@ def team_edit(team_id):
         team_name = request.form.get('name')
         game_name = request.form.get('game_name')
         captain_phone = request.form.get('captain_phone')
+
+        # Handle image upload
+        if 'image' in request.files:
+            file = request.files['image']
+            if file and file.filename:
+                # Validate file type and size
+                allowed_extensions = {'png', 'jpg', 'jpeg', 'gif'}
+                if '.' in file.filename and file.filename.rsplit('.', 1)[1].lower() in allowed_extensions:
+                    filename = secure_filename(file.filename)
+                    upload_dir = os.path.join('power-ranking-web-app', 'website', 'static', 'uploads', 'teams')
+                    os.makedirs(upload_dir, exist_ok=True)
+                    file_path = os.path.join(upload_dir, filename)
+                    file.save(file_path)
+                    team.image = f'uploads/teams/{filename}'
+                else:
+                    flash('Invalid image file type. Only PNG, JPG, JPEG, and GIF are allowed.', category='error')
+                    return redirect(url_for('views.team_edit', team_id=team_id))
 
         # Validate required fields
         if not game_name or game_name.strip() == '':

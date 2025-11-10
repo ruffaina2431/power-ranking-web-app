@@ -6,20 +6,21 @@
 
 <style>
 .btn-glow {
-    box-shadow: 0 0 10px rgba(191, 9, 47, 0.5);
+    box-shadow: 0 0 10px rgba(0, 123, 255, 0.5);
     transition: box-shadow 0.3s ease;
 }
 .btn-glow:hover {
-    box-shadow: 0 0 20px rgba(191, 9, 47, 0.8);
+    box-shadow: 0 0 20px rgba(0, 123, 255, 0.8);
 }
 .hero-section {
-    background: linear-gradient(135deg, #132440 0%, #16476A 50%, #132440 100%);
-    border: 2px solid #BF092F;
-    box-shadow: 0 0 20px rgba(191, 9, 47, 0.5);
+    background: linear-gradient(135deg, #1e3a5f 0%, #2c5aa0 50%, #1e3a5f 100%);
+    border: 2px solid #007bff;
+    box-shadow: 0 0 20px rgba(0, 123, 255, 0.5);
     position: relative;
     overflow: hidden;
     padding: 20px;
     margin-bottom: 30px;
+    border-radius: 10px;
 }
 .hero-section::before {
     content: '';
@@ -28,7 +29,7 @@
     left: 0;
     right: 0;
     bottom: 0;
-    background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="2" fill="%23BF092F" opacity="0.1"/></svg>') repeat;
+    background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="2" fill="%23007bff" opacity="0.1"/></svg>') repeat;
     opacity: 0.1;
 }
 .rank-badge {
@@ -36,23 +37,19 @@
     width: 40px;
     height: 40px;
     border-radius: 50%;
-    background: linear-gradient(45deg, #BF092F, #3B9797);
+    background: linear-gradient(45deg, #007bff, #00d4ff);
     color: white;
     text-align: center;
     line-height: 40px;
     font-weight: bold;
-    box-shadow: 0 0 10px rgba(191, 9, 47, 0.5);
-}
-.table-hover tbody tr:hover {
-    background-color: rgba(0, 212, 255, 0.1);
-    transition: all 0.3s ease;
+    box-shadow: 0 0 10px rgba(0, 123, 255, 0.5);
 }
 </style>
 
 <div class="container mt-4">
     <div class="hero-section text-center text-white">
-        <h1 class="display-4" style="text-shadow: 0 0 10px #BF092F;">My Teams</h1>
-        <p class="lead" style="text-shadow: 0 0 5px #BF092F;">Manage your e-sports teams</p>
+        <h1 class="display-4" style="text-shadow: 0 0 10px #007bff;">My Teams</h1>
+        <p class="lead" style="text-shadow: 0 0 5px #007bff;">Manage your e-sports teams</p>
     </div>
 
     {% if teams %}

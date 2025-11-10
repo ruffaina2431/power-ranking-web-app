@@ -29,11 +29,14 @@ JavaScript Features:
 
 <style>
 .hero-section {
-    background: linear-gradient(135deg, #132440 0%, #16476A 50%, #132440 100%);
-    border: 2px solid #16476A;
-    box-shadow: 0 0 20px rgba(191, 9, 47, 0.5);
+    background: linear-gradient(60deg, #013b79 20%, #861a25 80%);
+    border: 2px solid #643131;
+    box-shadow: 0 0 20px rgb(211, 72, 72);
     position: relative;
     overflow: hidden;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    border-radius: 10px;
 }
 .hero-section::before {
     content: '';
@@ -42,18 +45,18 @@ JavaScript Features:
     left: 0;
     right: 0;
     bottom: 0;
-    background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="2" fill="%23BF092F" opacity="0.1"/></svg>') repeat;
+    background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="2" fill="%23007bff" opacity="0.1"/></svg>') repeat;
     opacity: 0.1;
 }
 .hero-title {
     font-size: 3rem;
     font-weight: bold;
-    text-shadow: 0 0 10px #216799, 0 0 20px #16476A;
+    text-shadow: 0 0 10px #ff0000, 0 0 20px #0011ff;
     color: #ffffff;
 }
 .hero-subtitle {
     font-size: 1.5rem;
-    text-shadow: 0 0 5px #246b9e;
+    text-shadow: 0 0 5px #2c5aa0;
     color: #cccccc;
 }
 .rank-badge {
@@ -61,44 +64,40 @@ JavaScript Features:
     width: 40px;
     height: 40px;
     border-radius: 50%;
-    background: linear-gradient(45deg, #BF092F, #3B9797);
+    background: linear-gradient(45deg, #007bff, #ff3300);
     color: white;
     text-align: center;
     line-height: 40px;
     font-weight: bold;
-    box-shadow: 0 0 10px rgba(191, 9, 47, 0.5);
-}
-.table-hover tbody tr:hover {
-    background-color: rgba(0, 212, 255, 0.1);
-    transition: all 0.3s ease;
+    box-shadow: 0 0 10px rgba(0, 123, 255, 0.5);
 }
 .tournament-card {
-    border: 1px solid #16476A;
-    box-shadow: 0 0 15px rgba(0, 212, 255, 0.3);
+    border: 1px solid #007bff;
+    box-shadow: 0 0 15px rgba(0, 123, 255, 0.3);
     transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 .tournament-card:hover {
     transform: translateY(-5px);
-    box-shadow: 0 10px 25px rgba(0, 60, 255, 0.5);
+    box-shadow: 0 10px 25px rgba(0, 123, 255, 0.5);
 }
 .tournament-header {
-    background: linear-gradient(90deg, #BF092F, #3B9797);
+    background: linear-gradient(90deg, #007bff, #00d4ff);
     color: white;
 }
 .btn-glow {
-    box-shadow: 0 0 10px rgba(68, 0, 255, 0.5);
+    box-shadow: 0 0 10px rgba(0, 123, 255, 0.5);
     transition: box-shadow 0.3s ease;
 }
 .btn-glow:hover {
-    box-shadow: 0 0 20px rgba(0, 47, 255, 0.8);
+    box-shadow: 0 0 20px rgba(0, 123, 255, 0.8);
 }
 .search-card {
-    border: 1px solid #16476A;
-    box-shadow: 0 0 10px rgba(255, 0, 55, 0.692);
+    border: 1px solid #007bff;
+    box-shadow: 0 0 10px rgba(0, 123, 255, 0.3);
 }
 .rankings-card {
-    border: 1px solid #16476A;
-    box-shadow: 0 0 15px rgba(226, 8, 55, 0.63);
+    border: 1px solid #007bff00;
+    box-shadow: 0 0 15px rgba(0, 123, 255, 0.3);
 }
 </style>
 
@@ -138,60 +137,15 @@ function sortTable(sortBy) {
 }
 </script>
 
-<div class="container mt-4">
+<div class="container-fluid">
     <!-- Hero Section -->
     <div class="hero-section jumbotron text-center text-white py-4 mb-4">
-        <div class="container-fluid ">
+        <div class="container-fluid">
             <i class="fa fa-trophy fa-3x mb-3" style="color: #ffd000;"></i>
             <h1 class="hero-title">KDM E-Sports Tournament Power Rankings</h1>
             <p class="hero-subtitle">Compete in our upcoming tournaments and climb the ranks!</p>
         </div>
     </div>
-
-    <!-- Game Search Section -->
-    <div class="search-card card mb-4">
-        <div class="card-header bg-primary text-white">
-            <h3><i class="fa fa-search mr-2"></i>Search Game Categories</h3>
-        </div>
-        <div class="card-body">
-            <div class="row">
-                <div class="col-md-8">
-                    <input type="text" class="form-control" id="gameSearch" placeholder="Enter game name (e.g., VALORANT, Bloodstrike)" onkeypress="if(event.key === 'Enter') searchGame()">
-                </div>
-                <div class="col-md-4">
-                    <button type="button" class="btn btn-primary btn-block btn-glow" onclick="searchGame()"><i class="fa fa-search mr-2"></i>Search</button>
-                </div>
-            </div>
-            <div class="mt-3">
-                <p class="text-muted">Available categories: {% for cat in categories %}{{ cat }}{% if not loop.last %}, {% endif %}{% endfor %}</p>
-                <div id="searchFeedback" class="alert alert-warning mt-2" style="display: none;"></div>
-            </div>
-        </div>
-    </div>
-
-    <script>
-        // Check for search results on page load
-        document.addEventListener('DOMContentLoaded', function() {
-            var lastSearchTerm = sessionStorage.getItem('lastSearchTerm');
-            var teamsTable = document.querySelector('.table tbody');
-            var noTeamsRow = teamsTable.querySelector('tr td[colspan="4"]');
-            
-            if (lastSearchTerm && noTeamsRow) {
-                document.getElementById('searchFeedback').style.display = 'block';
-                document.getElementById('searchFeedback').textContent = 'No teams found for "' + lastSearchTerm + '". Try checking the game name spelling or try a different game.';
-                // Highlight available categories
-                document.querySelector('.text-muted').style.fontWeight = 'bold';
-                sessionStorage.removeItem('lastSearchTerm');
-            } else if (lastSearchTerm) {
-                sessionStorage.removeItem('lastSearchTerm');
-            }
-
-            // Set the search input value to the last search
-            if (lastSearchTerm) {
-                document.getElementById('gameSearch').value = lastSearchTerm;
-            }
-        });
-    </script>
 
     <!-- Power Rankings Section -->
     <div id="rankings" class="rankings-card card mb-4">
@@ -199,6 +153,20 @@ function sortTable(sortBy) {
             <h2><i class="fa fa-trophy mr-2"></i>Current Power Rankings - {{ current_category }}</h2>
         </div>
         <div class="card-body">
+            <!-- Game Search Section -->
+            <div class="row mb-4">
+                <div class="col-md-8">
+                    <input type="text" class="form-control" id="gameSearch" placeholder="Enter game name (e.g., VALORANT, Bloodstrike)" onkeypress="if(event.key === 'Enter') searchGame()">
+                </div>
+                <div class="col-md-4">
+                    <button type="button" class="btn btn-primary btn-block btn-glow" onclick="searchGame()"><i class="fa fa-search mr-2"></i>Search</button>
+                </div>
+            </div>
+            <div class="mt-3 mb-4">
+                <p class="text-muted">Available categories: {% for cat in categories %}{{ cat }}{% if not loop.last %}, {% endif %}{% endfor %}</p>
+                <div id="searchFeedback" class="alert alert-warning mt-2" style="display: none;"></div>
+            </div>
+
             <div class="table-responsive">
                 <table class="table table-hover table-dark">
                     <thead class="thead-light">
@@ -219,7 +187,14 @@ function sortTable(sortBy) {
                                     Unranked
                                 {% endif %}
                             </td>
-                            <td><strong>{{ team.name }}</strong></td>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    {% if team.image %}
+                                    <img src="{{ url_for('static', filename=team.image) }}" alt="{{ team.name }} Logo" class="rounded-circle mr-2" style="width: 30px; height: 30px; object-fit: cover;">
+                                    {% endif %}
+                                    <strong>{{ team.name }}</strong>
+                                </div>
+                            </td>
                             <td><span class="text-warning">{{ team.points }}</span></td>
                             <td><span class="text-success">{{ team.wins }}</span></td>
                         </tr>
@@ -250,7 +225,7 @@ function sortTable(sortBy) {
                             <h5><i class="fa fa-gamepad mr-2"></i>{{ tournament.name }}</h5>
                         </div>
                         <div class="card-body">
-                            <h6 class="card-title"><i class="fa fa-calendar-alt mr-2"></i>{{ tournament.date.strftime('%B %d, %Y') }}</h6>
+                            <h6 class="card-title"><i class="fa fa-calendar-alt mr-2">Scheduled On</i>{{ tournament.date.strftime('%B %d, %Y') }}</h6>
                             <p class="card-text">
                                 <strong>Location:</strong> {{ tournament.location|title }}<br>
                                 <strong>Max Players:</strong> {{ tournament.max_players }}<br>
@@ -264,14 +239,14 @@ function sortTable(sortBy) {
                             {% if current_user.is_authenticated %}
                             <div class="row">
                                 <div class="col-6">
-                                    <a href="{{ url_for('views.team_create', game_name=tournament.game_name, tournament_location=tournament.location) }}" class="btn btn-glow btn-block" style="background: linear-gradient(90deg, #BF092F, #3B9797); border: none;">Create Team & Register</a>
+                                    <a href="{{ url_for('views.team_create', game_name=tournament.game_name, tournament_location=tournament.location) }}" class="btn btn-glow btn-block" style="background: linear-gradient(90deg, #007bff, #00d4ff); border: none;">Create Team & Register</a>
                                 </div>
                                 <div class="col-6">
-                                    <a href="{{ url_for('views.tournament_join', location=tournament.location) }}" class="btn btn-glow btn-block" style="background: linear-gradient(90deg, #3B9797, #BF092F); border: none;">Join with Existing Team</a>
+                                    <a href="{{ url_for('views.tournament_join', location=tournament.location) }}" class="btn btn-glow btn-block" style="background: linear-gradient(90deg, #00d4ff, #007bff); border: none;">Join with Existing Team</a>
                                 </div>
                             </div>
                             {% else %}
-                            <a href="/login" class="btn btn-glow btn-block" style="background: linear-gradient(90deg, #BF092F, #3B9797); border: none;">Login to Register</a>
+                            <a href="/login" class="btn btn-glow btn-block" style="background: linear-gradient(90deg, #007bff, #00d4ff); border: none;">Login to Register</a>
                             {% endif %}
                         </div>
                     </div>

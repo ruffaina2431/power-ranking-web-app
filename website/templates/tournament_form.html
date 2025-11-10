@@ -12,7 +12,7 @@ Features:
 - Player limit setting
 
 Visual Elements:
-- Custom CSS styling with cyberpunk-inspired design
+- Modern dark theme styling
 - Glowing form elements and buttons
 - Dynamic hover effects
 - Gradient backgrounds with subtle patterns
@@ -36,19 +36,20 @@ Form Validation:
 
 <style>
 .form-card {
-    border: 1px solid #00d4ff;
-    box-shadow: 0 0 15px rgba(0, 212, 255, 0.3);
+    border: 1px solid #007bff;
+    box-shadow: 0 0 15px rgba(0, 123, 255, 0.3);
     margin-bottom: 20px;
 }
 .hero-section {
-    background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 50%, #1a1a1a 100%);
-    border: 2px solid #00d4ff;
-    box-shadow: 0 0 20px rgba(0, 212, 255, 0.5);
+    background: linear-gradient(135deg, #1e3a5f 0%, #2c5aa0 50%, #1e3a5f 100%);
+    border: 2px solid #007bff;
+    box-shadow: 0 0 20px rgba(0, 123, 255, 0.5);
     position: relative;
     overflow: hidden;
     padding: 20px;
     margin-bottom: 30px;
     color: white;
+    border-radius: 10px;
 }
 .hero-section::before {
     content: '';
@@ -57,26 +58,22 @@ Form Validation:
     left: 0;
     right: 0;
     bottom: 0;
-    background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="2" fill="%2300d4ff" opacity="0.1"/></svg>') repeat;
+    background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="2" fill="%23007bff" opacity="0.1"/></svg>') repeat;
     opacity: 0.1;
 }
 .btn-glow {
-    box-shadow: 0 0 10px rgba(0, 212, 255, 0.5);
+    box-shadow: 0 0 10px rgba(0, 123, 255, 0.5);
     transition: box-shadow 0.3s ease;
 }
 .btn-glow:hover {
-    box-shadow: 0 0 20px rgba(0, 212, 255, 0.8);
-}
-.form-control:focus {
-    border-color: #00d4ff;
-    box-shadow: 0 0 10px rgba(0, 212, 255, 0.5);
+    box-shadow: 0 0 20px rgba(0, 123, 255, 0.8);
 }
 </style>
 
 <div class="container-fluid mt-4">
     <div class="hero-section text-center">
-        <h1 style="text-shadow: 0 0 10px #00d4ff;">{{ action }} Tournament</h1>
-        <p class="lead" style="text-shadow: 0 0 5px #00d4ff;">Create or edit tournament details</p>
+        <h1 style="text-shadow: 0 0 10px #007bff;">{{ action }} Tournament</h1>
+        <p class="lead" style="text-shadow: 0 0 5px #007bff;">Create or edit tournament details</p>
     </div>
 
     <div class="row justify-content-center">

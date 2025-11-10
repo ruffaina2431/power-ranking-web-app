@@ -10,7 +10,6 @@ Features:
 - Bootstrap styling for form elements
 
 Form Fields:
-- Username: User's chosen username
 - First Name: User's first name
 - Last Name: User's last name
 - Email: User's email address (must be unique)
@@ -26,48 +25,48 @@ Security Features:
 {% block content %}
 <div class="row justify-content-center mt-5">
     <div class="col-md-8 col-lg-6">
-        <div class="card shadow-lg border-0" style="background-color: #1a1a1a; border-radius: 15px;">
+        <div class="card">
             <div class="card-body p-5">
                 <div class="text-center mb-4">
                     <i class="fa fa-user-plus fa-3x text-success mb-3" aria-hidden="true"></i>
-                    <h2 class="card-title text-light">Join the Community</h2>
+                    <h2 class="card-title">Join the Community</h2>
                     <p class="text-muted">Create your account to get started</p>
                 </div>
                 <form method="POST">
                     <div class="row">
                         <div class="col-md-6">
                             <div class="form-group">
-                                <label for="firstname" class="text-light">First Name</label>
-                                <input type="text" class="form-control bg-dark text-light border-secondary" id="firstname" name="firstname" placeholder="Enter your first name" required style="border-radius: 10px;">
+                                <label for="firstname">First Name</label>
+                                <input type="text" class="form-control" id="firstname" name="firstname" placeholder="Enter your first name" required>
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="form-group">
-                                <label for="lastname" class="text-light">Last Name</label>
-                                <input type="text" class="form-control bg-dark text-light border-secondary" id="lastname" name="lastname" placeholder="Enter your last name" required style="border-radius: 10px;">
+                                <label for="lastname">Last Name</label>
+                                <input type="text" class="form-control" id="lastname" name="lastname" placeholder="Enter your last name" required>
                             </div>
                         </div>
                     </div>
                     <div class="form-group">
-                        <label for="email" class="text-light">Email Address</label>
-                        <input type="email" class="form-control bg-dark text-light border-secondary" id="email" name="email" placeholder="Enter your email" required style="border-radius: 10px;">
+                        <label for="email">Email Address</label>
+                        <input type="email" class="form-control" id="email" name="email" placeholder="Enter your email" required>
                     </div>
                     <div class="row">
                         <div class="col-md-6">
                             <div class="form-group">
-                                <label for="password1" class="text-light">Password</label>
-                                <input type="password" class="form-control bg-dark text-light border-secondary" id="password1" name="password1" placeholder="Create a password" required style="border-radius: 10px;">
+                                <label for="password1">Password</label>
+                                <input type="password" class="form-control" id="password1" name="password1" placeholder="Create a password" required>
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="form-group">
-                                <label for="password2" class="text-light">Confirm Password</label>
-                                <input type="password" class="form-control bg-dark text-light border-secondary" id="password2" name="password2" placeholder="Confirm your password" required style="border-radius: 10px;">
+                                <label for="password2">Confirm Password</label>
+                                <input type="password" class="form-control" id="password2" name="password2" placeholder="Confirm your password" required>
                             </div>
                         </div>
                     </div>
                     <div class="form-group text-center">
-                        <button type="submit" class="btn btn-success btn-lg w-100" style="border-radius: 10px; background-color: #28a745; border: none;">Sign Up</button>
+                        <button type="submit" class="btn btn-success btn-lg w-100">Sign Up</button>
                     </div>
                 </form>
             </div>

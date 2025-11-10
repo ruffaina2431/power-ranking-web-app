@@ -30,9 +30,9 @@ Special Features:
 
 <style>
 .form-hero {
-    background: linear-gradient(135deg, #132440 0%, #16476A 50%, #132440 100%);
-    border: 2px solid #16476A;
-    box-shadow: 0 0 20px rgba(191, 9, 47, 0.5);
+    background: linear-gradient(135deg, #1e3a5f 0%, #2c5aa0 50%, #1e3a5f 100%);
+    border: 2px solid #007bff;
+    box-shadow: 0 0 20px rgba(0, 123, 255, 0.5);
     position: relative;
     overflow: hidden;
     padding: 2rem;
@@ -46,48 +46,34 @@ Special Features:
     left: 0;
     right: 0;
     bottom: 0;
-    background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="2" fill="%23BF092F" opacity="0.1"/></svg>') repeat;
+    background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="2" fill="%23007bff" opacity="0.1"/></svg>') repeat;
     opacity: 0.1;
 }
 .form-title {
     font-size: 2.5rem;
     font-weight: bold;
-    text-shadow: 0 0 10px #216799, 0 0 20px #16476A;
+    text-shadow: 0 0 10px #00d4ff, 0 0 20px #007bff;
     color: #ffffff;
     margin-bottom: 1rem;
 }
 .form-card {
-    border: 1px solid #16476A;
-    box-shadow: 0 0 15px rgba(0, 212, 255, 0.3);
-    background-color: #2b2b2b;
+    border: 1px solid #007bff;
+    box-shadow: 0 0 15px rgba(0, 123, 255, 0.3);
+    background-color: #1e1e1e;
     border-radius: 10px;
 }
 .form-card .card-header {
-    background: linear-gradient(90deg, #BF092F, #3B9797);
+    background: linear-gradient(90deg, #007bff, #00d4ff);
     color: white;
     border-bottom: none;
     border-radius: 10px 10px 0 0;
 }
 .btn-glow {
-    box-shadow: 0 0 10px rgba(68, 0, 255, 0.5);
+    box-shadow: 0 0 10px rgba(0, 123, 255, 0.5);
     transition: box-shadow 0.3s ease;
 }
 .btn-glow:hover {
-    box-shadow: 0 0 20px rgba(0, 47, 255, 0.8);
-}
-.form-control {
-    background-color: #333;
-    border: 1px solid #555;
-    color: #ffffff;
-}
-.form-control::placeholder {
-    color: #cccccc;
-}
-.form-control:focus {
-    background-color: #444;
-    border-color: #BF092F;
-    box-shadow: 0 0 5px rgba(191, 9, 47, 0.5);
-    color: #ffffff;
+    box-shadow: 0 0 20px rgba(0, 123, 255, 0.8);
 }
 .label-custom {
     color: #cccccc;
@@ -95,7 +81,7 @@ Special Features:
 }
 .alert-info {
     background-color: rgba(0, 123, 255, 0.1);
-    border-color: #16476A;
+    border-color: #007bff;
     color: #cccccc;
 }
 </style>
@@ -121,13 +107,13 @@ Special Features:
             <h3><i class="fa fa-edit mr-2"></i>Team Details</h3>
         </div>
         <div class="card-body">
-            <form method="POST">
+            <form method="POST" enctype="multipart/form-data">
                 <div class="form-group">
                     <label for="name" class="label-custom">Team Name</label>
                     <input type="text" class="form-control" id="name" name="name" value="{{ team.name if team else '' }}" required placeholder="Enter your team name">
                 </div>
                 <div class="form-group">
-                    <label for="game_name" class="label-custom ">Game Name</label>
+                    <label for="game_name" class="label-custom">Game Name</label>
                     <select class="form-control text-dark" id="game_name" name="game_name" required {% if predefined_game_name %}disabled{% endif %}>
                         <option value="">Select a game</option>
                         {% for category in categories %}
@@ -140,12 +126,23 @@ Special Features:
                 </div>
                 <div class="form-group">
                     <label for="captain_phone" class="label-custom">Captain Phone</label>
-                    <input type="text" class="form-control" id="captain_phone" name="captain_phone" value="{{ team.captain_phone if team else '' }}" required placeholder="e.g., +1-234-567-8900">
+                    <input type="text" class="form-control" id="captain_phone" name="captain_phone" value="{{ team.captain_phone if team else '' }}" required placeholder="e.g., +63 906-1010-010">
                 </div>
                 <div class="form-group">
-                    <label class="label-custom">Player Names (required)</label>
+                    <label for="image" class="label-custom">Team Image (optional)</label>
+                    <input type="file" class="form-control-file" id="image" name="image" accept="image/*">
+                    <small class="form-text text-muted">Upload a team logo or image (PNG, JPG, JPEG, GIF only).</small>
+                </div>
+                <div class="form-group">
+                    <label class="label-custom">Player Names and Images (required)</label>
                     {% for i in range(1, max_players + 1) %}
-                    <input type="text" class="form-control mb-2" name="player{{i}}" placeholder="Player {{i}} Name" value="{% if team and team.players %}{{ team.players[i-1].name if i-1 < team.players|length else '' }}{% endif %}" required>
+                    <div class="input-group mb-2">
+                        <input type="text" class="form-control" name="player{{i}}" placeholder="Player {{i}} Name" value="{% if team and team.players %}{{ team.players[i-1].name if i-1 < team.players|length else '' }}{% endif %}" required>
+                        <div class="input-group-append">
+                            <button type="button" class="btn btn-outline-secondary" onclick="document.getElementById('player{{i}}_image').click()">Upload Image</button>
+                            <input type="file" id="player{{i}}_image" name="player{{i}}_image" accept="image/*" style="display: none;">
+                        </div>
+                    </div>
                     {% endfor %}
                     <input type="hidden" name="max_players" value="{{ max_players }}">
                 </div>
@@ -160,5 +157,25 @@ Special Features:
         </div>
     </div>
 </div>
+
+<script>
+    // Change button style after image upload for each player
+    for (let i = 1; i <= parseInt('{{ max_players }}'); i++) {
+        const input = document.getElementById('player' + i + '_image');
+        const button = input.previousElementSibling;
+
+        input.addEventListener('change', function() {
+            if (this.files.length > 0) {
+                button.classList.remove('btn-outline-secondary');
+                button.classList.add('btn-success');
+                button.textContent = 'Image Uploaded';
+            } else {
+                button.classList.remove('btn-success');
+                button.classList.add('btn-outline-secondary');
+                button.textContent = 'Upload Image';
+            }
+        });
+    }
+</script>
 
 {% endblock %}

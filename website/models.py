@@ -56,6 +56,7 @@ class Team(db.Model):
     wins = db.Column(db.Integer, default=0)
     rank = db.Column(db.Integer)
     game_name = db.Column(db.String(150))
+    image = db.Column(db.String(255))  # Path to team image
     # pylint: disable=E1102
     created_date = db.Column(db.DateTime(timezone=True), default=func.now())
     players = db.relationship('Player', backref='team', lazy=True)
@@ -100,6 +101,7 @@ class Player(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(150))
     team_id = db.Column(db.Integer, db.ForeignKey('team.id'))
+    image = db.Column(db.String(255))  # Path to player image
     # pylint: disable=E1102
     join_date = db.Column(db.DateTime(timezone=True), default=func.now())
 

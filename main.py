@@ -53,4 +53,5 @@ app = create_app()
 if __name__ == '__main__':
     # Run the application in debug mode for development
     # Debug mode enables auto-reload and detailed error pages
-    app.run(debug=True)
+    # Host='0.0.0.0' makes it accessible from other devices on the network
+    app.run(host='0.0.0.0', debug=True)

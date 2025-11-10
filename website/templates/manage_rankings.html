@@ -11,7 +11,7 @@ Features:
 - Interactive UI elements
 
 Visual Design:
-- Cyberpunk-inspired styling
+- Modern dark theme styling
 - Card-based team display
 - Gradient effects and patterns
 - Interactive hover animations
@@ -37,34 +37,35 @@ Admin Features:
 
 <style>
 .ranking-card {
-    border: 1px solid #BF092F;
-    box-shadow: 0 0 15px rgba(191, 9, 47, 0.3);
+    border: 1px solid #007bff;
+    box-shadow: 0 0 15px rgba(0, 123, 255, 0.3);
     transition: transform 0.3s ease, box-shadow 0.3s ease;
     margin-bottom: 20px;
 }
 .ranking-card:hover {
     transform: translateY(-5px);
-    box-shadow: 0 10px 25px rgba(191, 9, 47, 0.5);
+    box-shadow: 0 10px 25px rgba(0, 123, 255, 0.5);
 }
 .ranking-header {
-    background: linear-gradient(90deg, #BF092F, #3B9797);
+    background: linear-gradient(90deg, #007bff, #00d4ff);
     color: white;
 }
 .btn-glow {
-    box-shadow: 0 0 10px rgba(191, 9, 47, 0.5);
+    box-shadow: 0 0 10px rgba(0, 123, 255, 0.5);
     transition: box-shadow 0.3s ease;
 }
 .btn-glow:hover {
-    box-shadow: 0 0 20px rgba(191, 9, 47, 0.8);
+    box-shadow: 0 0 20px rgba(0, 123, 255, 0.8);
 }
 .hero-section {
-    background: linear-gradient(135deg, #132440 0%, #16476A 50%, #132440 100%);
-    border: 2px solid #BF092F;
-    box-shadow: 0 0 20px rgba(191, 9, 47, 0.5);
+    background: linear-gradient(135deg, #1e3a5f 0%, #2c5aa0 50%, #1e3a5f 100%);
+    border: 2px solid #007bff;
+    box-shadow: 0 0 20px rgba(0, 123, 255, 0.5);
     position: relative;
     overflow: hidden;
     padding: 20px;
     margin-bottom: 30px;
+    border-radius: 10px;
 }
 .hero-section::before {
     content: '';
@@ -73,15 +74,15 @@ Admin Features:
     left: 0;
     right: 0;
     bottom: 0;
-    background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="2" fill="%23BF092F" opacity="0.1"/></svg>') repeat;
+    background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="2" fill="%23007bff" opacity="0.1"/></svg>') repeat;
     opacity: 0.1;
 }
 </style>
 
 <div class="container-fluid mt-4">
     <div class="hero-section text-center text-white">
-        <h1 class="display-4" style="text-shadow: 0 0 10px #BF092F;">Manage Rankings</h1>
-        <p class="lead" style="text-shadow: 0 0 5px #BF092F;">Adjust points and wins for registered teams</p>
+        <h1 class="display-4" style="text-shadow: 0 0 10px #007bff;">Manage Rankings</h1>
+        <p class="lead" style="text-shadow: 0 0 5px #007bff;">Adjust points and wins for registered teams</p>
     </div>
 
     {% if teams %}
