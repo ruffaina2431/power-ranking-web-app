@@ -85,10 +85,45 @@ Admin Features:
         <p class="lead" style="text-shadow: 0 0 5px #007bff;">Adjust points and wins for registered teams</p>
     </div>
 
+    <!-- Search Section -->
+    <div class="row justify-content-center mb-4">
+        <div class="col-md-8">
+            <div class="card search-card">
+                <div class="card-body">
+                    <h5 class="card-title text-center"><i class="fa fa-search mr-2"></i>Search Teams</h5>
+                    <div class="form-row">
+                        <div class="col-md-4">
+                            <select class="form-control" id="searchType">
+                                <option value="name">Team Name</option>
+                                <option value="category">Category (Game)</option>
+                                <option value="wins">Wins</option>
+                                <option value="points">Points</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <input type="text" class="form-control" id="searchInput" placeholder="Enter search term (e.g., team name, game, number)">
+                        </div>
+                        <div class="col-md-2">
+                            <button type="button" class="btn btn-primary btn-block btn-glow" onclick="filterTeams()"><i class="fa fa-search mr-2"></i>Search</button>
+                        </div>
+                    </div>
+                    <small class="form-text text-muted">
+                        <strong>Search Purposes:</strong><br>
+                        - <strong>Team Name:</strong> Search by exact or partial team name.<br>
+                        - <strong>Category (Game):</strong> Search by game category (e.g., VALORANT).<br>
+                        - <strong>Wins:</strong> Search by number of wins (exact match).<br>
+                        - <strong>Points:</strong> Search by points (exact match).
+                    </small>
+                    <div id="searchFeedback" class="alert alert-info mt-2" style="display: none;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     {% if teams %}
-    <div class="row">
+    <div class="row" id="teamsContainer">
         {% for team in teams %}
-        <div class="col-md-6 col-lg-4 mb-4">
+        <div class="col-md-6 col-lg-4 mb-4 team-card" data-name="{{ team.name }}" data-category="{{ team.game_name }}" data-wins="{{ team.wins }}" data-points="{{ team.points }}">
             <div class="ranking-card card h-100">
                 <div class="ranking-header card-header">
                     <h5><i class="fa fa-trophy mr-2"></i>{{ team.name }}</h5>
@@ -114,5 +149,82 @@ Admin Features:
     </div>
     {% endif %}
 </div>
+
+<script>
+function filterTeams() {
+    const searchType = document.getElementById('searchType').value;
+    const searchInput = document.getElementById('searchInput').value.trim().toLowerCase();
+    const teamCards = document.querySelectorAll('.team-card');
+    const feedback = document.getElementById('searchFeedback');
+    let visibleCount = 0;
+
+    if (!searchInput) {
+        feedback.style.display = 'block';
+        feedback.className = 'alert alert-warning mt-2';
+        feedback.textContent = 'Please enter a search term.';
+        setTimeout(() => { feedback.style.display = 'none'; }, 3000);
+        return;
+    }
+
+    teamCards.forEach(card => {
+        let match = false;
+        const name = card.getAttribute('data-name').toLowerCase();
+        const category = card.getAttribute('data-category').toLowerCase();
+        const wins = card.getAttribute('data-wins');
+        const points = card.getAttribute('data-points');
+
+        switch (searchType) {
+            case 'name':
+                match = name.includes(searchInput);
+                break;
+            case 'category':
+                match = category.includes(searchInput);
+                break;
+            case 'wins':
+                match = wins === searchInput;
+                break;
+            case 'points':
+                match = points === searchInput;
+                break;
+        }
+
+        if (match) {
+            card.style.display = 'block';
+            visibleCount++;
+        } else {
+            card.style.display = 'none';
+        }
+    });
+
+    feedback.style.display = 'block';
+    if (visibleCount > 0) {
+        feedback.className = 'alert alert-success mt-2';
+        feedback.textContent = `Found ${visibleCount} team(s) matching your search.`;
+    } else {
+        feedback.className = 'alert alert-info mt-2';
+        feedback.textContent = 'No teams found matching your search criteria.';
+    }
+    setTimeout(() => { feedback.style.display = 'none'; }, 5000);
+}
+
+// Clear search and show all teams
+function clearSearch() {
+    document.getElementById('searchInput').value = '';
+    const teamCards = document.querySelectorAll('.team-card');
+    teamCards.forEach(card => {
+        card.style.display = 'block';
+    });
+    document.getElementById('searchFeedback').style.display = 'none';
+}
+
+// Add event listener for Enter key on search input
+document.addEventListener('DOMContentLoaded', function() {
+    document.getElementById('searchInput').addEventListener('keypress', function(event) {
+        if (event.key === 'Enter') {
+            filterTeams();
+        }
+    });
+});
+</script>
 
 {% endblock %}

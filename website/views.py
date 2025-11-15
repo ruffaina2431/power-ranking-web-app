@@ -154,7 +154,7 @@ def register_team():
 
         tournament = Tournament.query.filter_by(
             location=tournament_location,
-        ).order_by(Tournament.date.desc()).first()
+        ).filter(Tournament.archived == False).order_by(Tournament.date.desc()).first()
 
         if tournament:
             return redirect(url_for('views.team_create', game_name=tournament.game_name, tournament_location=tournament.location))
@@ -181,7 +181,7 @@ def tournament_register(location):
 
         tournament = Tournament.query.filter_by(
             location=location,
-        ).order_by(Tournament.date.desc()).first()
+        ).filter(Tournament.archived == False).order_by(Tournament.date.desc()).first()
 
         if not tournament:
             flash('No upcoming tournament found for this location!', category='error')
@@ -236,7 +236,7 @@ def tournament_join(location):
 
     tournament = Tournament.query.filter_by(
         location=location,
-    ).order_by(Tournament.date.desc()).first()
+    ).filter(Tournament.archived == False).order_by(Tournament.date.desc()).first()
 
     if not tournament:
         flash('No upcoming tournament found for this location!', category='error')
@@ -436,7 +436,7 @@ def team_create():
             if tournament_location:
                 tournament = Tournament.query.filter_by(
                     location=tournament_location,
-                ).order_by(Tournament.date.desc()).first()
+                ).filter(Tournament.archived == False).order_by(Tournament.date.desc()).first()
                 if tournament and tournament.game_name == new_team.game_name:
                     registration = TournamentRegistration()
                     registration.tournament_id = tournament.id
@@ -464,7 +464,7 @@ def team_create():
     if predefined_tournament_location:
         tournament = Tournament.query.filter_by(
             location=predefined_tournament_location,
-        ).order_by(Tournament.date.desc()).first()
+        ).filter(Tournament.archived == False).order_by(Tournament.date.desc()).first()
         if tournament:
             max_players = tournament.max_players
 
@@ -700,6 +700,11 @@ def tournament_edit(tournament_id):
 def tournament_archive(tournament_id):
     """Archive a tournament."""
     tournament = Tournament.query.get_or_404(tournament_id)
+
+    # Set all approved registrations for this tournament to 'archived'
+    approved_regs = TournamentRegistration.query.filter_by(tournament_id=tournament_id, status='approved').all()
+    for reg in approved_regs:
+        reg.status = 'archived'
 
     tournament.archived = True
     db.session.commit()

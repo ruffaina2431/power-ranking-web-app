@@ -14,8 +14,8 @@ Template Blocks:
 - content: Main content area for child templates
 
 Navigation:
-- Authenticated users see: My Teams, Home, Logout
-- Admin users also see: Tournaments, Manage Rankings
+- Authenticated non-admin users see: My Teams, Home, Logout
+- Admin users see: Tournaments, Manage Rankings, Home, Logout
 - Non-authenticated users see: Login, Sign Up, Home
 -->
 <html>
@@ -168,7 +168,9 @@ Navigation:
         <div class="collapse navbar-collapse" id="navbar">
           <div class="navbar-nav mr-auto">
             {% if current_user.is_authenticated %}
+              {% if not current_user.is_admin %}
               <a class="nav-item nav-link" href="/teams">My Teams</a>
+              {% endif %}
               {% if current_user.is_admin %}
               <a class="nav-item nav-link" href="/tournaments">Tournaments</a>
               <a class="nav-item nav-link" href="/manage-rankings">Manage Rankings</a>
