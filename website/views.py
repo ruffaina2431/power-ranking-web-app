@@ -25,15 +25,21 @@ Dependencies:
 - Flask-Login for user session management
 """
 
-from flask import Blueprint, render_template, request, flash, redirect, url_for, abort
+from flask import Blueprint, render_template, request, flash, redirect, url_for, abort, make_response
 from flask_login import login_required, current_user
 from sqlalchemy.sql import func
 from functools import wraps
 from datetime import datetime
 import os
+import json
 from werkzeug.utils import secure_filename
+from reportlab.lib.pagesizes import letter
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
+from reportlab.lib import colors
+from io import BytesIO
 
-from .models import Team, Player, Tournament, TournamentRegistration
+from .models import Team, Player, Tournament, TournamentRegistration, AuditLog
 from . import db
 
 def admin_required(f):
@@ -99,7 +105,10 @@ def home():
         else:
             teams_query = teams_query.order_by(Team.wins.asc())
 
-    teams = teams_query.limit(20).all()
+    # Pagination
+    page = request.args.get('page', 1, type=int)
+    teams_pagination = teams_query.paginate(page=page, per_page=10, error_out=False)
+    teams = teams_pagination.items
 
     # Update rankings for the current filtered set, only for approved registrations
     if category != 'VALORANT':
@@ -118,12 +127,15 @@ def home():
         team.rank = i
     db.session.commit()
 
-    # Get all upcoming tournaments
+    # Get all upcoming tournaments with pagination
     # pylint: disable=E1102
-    upcoming_tournaments = Tournament.query.filter(
+    tournament_page = request.args.get('tournament_page', 1, type=int)
+    upcoming_tournaments_query = Tournament.query.filter(
         Tournament.date >= func.now(),
         Tournament.archived == False
-    ).order_by(Tournament.date.asc()).all()
+    ).order_by(Tournament.date.asc())
+    tournaments_pagination = upcoming_tournaments_query.paginate(page=tournament_page, per_page=5, error_out=False)
+    upcoming_tournaments = tournaments_pagination.items
 
     # Get available categories from tournament game_names
     categories = db.session.query(Tournament.game_name).distinct().all()  # type: ignore[call-arg]
@@ -136,7 +148,9 @@ def home():
         current_category=category,
         categories=categories,
         sort_by=sort_by,
-        order=order
+        order=order,
+        pagination=teams_pagination,
+        tournament_pagination=tournaments_pagination
     )
 
 
@@ -618,8 +632,11 @@ def edit_player(player_id):
 @admin_required
 def tournaments():
     """List all tournaments."""
-    all_tournaments = Tournament.query.filter_by(archived=False).all()
-    return render_template('tournament_list.html', tournaments=all_tournaments)
+    page = request.args.get('page', 1, type=int)
+    tournaments_query = Tournament.query.filter_by(archived=False)
+    tournaments_pagination = tournaments_query.paginate(page=page, per_page=10, error_out=False)
+    tournaments = tournaments_pagination.items
+    return render_template('tournament_list.html', tournaments=tournaments, pagination=tournaments_pagination)
 
 @views.route('/tournament/create', methods=['GET', 'POST'])
 @login_required
@@ -739,6 +756,21 @@ def tournament_archive(tournament_id):
 
     tournament.archived = True
     db.session.commit()
+
+    # Log the manual archiving
+    audit_log = AuditLog(
+        user_id=current_user.id,
+        action='archive_tournament',
+        target_type='tournament',
+        target_id=tournament_id,
+        details=json.dumps({
+            'tournament_name': tournament.name,
+            'location': tournament.location
+        })
+    )
+    db.session.add(audit_log)
+    db.session.commit()
+
     flash('Tournament archived successfully!', category='success')
     return redirect(url_for('views.tournaments'))
 
@@ -772,6 +804,21 @@ def approve_registration(reg_id):
     registration = TournamentRegistration.query.get_or_404(reg_id)
     registration.status = 'approved'
     db.session.commit()
+
+    # Log the approval
+    audit_log = AuditLog(
+        user_id=current_user.id,
+        action='approve_registration',
+        target_type='registration',
+        target_id=reg_id,
+        details=json.dumps({
+            'team_name': registration.team.name,
+            'tournament_name': registration.tournament.name
+        })
+    )
+    db.session.add(audit_log)
+    db.session.commit()
+
     flash(f'Registration for {registration.team.name} has been approved!', category='success')
     return redirect(url_for('views.tournament_registrations', tournament_id=registration.tournament_id))
 
@@ -783,6 +830,21 @@ def reject_registration(reg_id):
     registration = TournamentRegistration.query.get_or_404(reg_id)
     registration.status = 'rejected'
     db.session.commit()
+
+    # Log the rejection
+    audit_log = AuditLog(
+        user_id=current_user.id,
+        action='reject_registration',
+        target_type='registration',
+        target_id=reg_id,
+        details=json.dumps({
+            'team_name': registration.team.name,
+            'tournament_name': registration.tournament.name
+        })
+    )
+    db.session.add(audit_log)
+    db.session.commit()
+
     flash(f'Registration for {registration.team.name} has been rejected!', category='error')
     return redirect(url_for('views.tournament_registrations', tournament_id=registration.tournament_id))
 
@@ -794,10 +856,13 @@ def reject_registration(reg_id):
 def manage_rankings():
     """Admin page to manage team rankings."""
     # Get teams that have approved tournament registrations
-    teams = Team.query.join(TournamentRegistration).filter(
+    page = request.args.get('page', 1, type=int)
+    teams_query = Team.query.join(TournamentRegistration).filter(
         TournamentRegistration.status == 'approved'
-    ).distinct().all()
-    return render_template('manage_rankings.html', teams=teams)
+    ).distinct()
+    teams_pagination = teams_query.paginate(page=page, per_page=10, error_out=False)
+    teams = teams_pagination.items
+    return render_template('manage_rankings.html', teams=teams, pagination=teams_pagination)
 
 @views.route('/manage-rankings/<int:team_id>/edit', methods=['GET', 'POST'])
 @login_required
@@ -821,10 +886,143 @@ def edit_ranking(team_id):
             flash('Points and wins must be numbers!', category='error')
             return redirect(url_for('views.edit_ranking', team_id=team_id))
 
+        # Capture old values
+        old_points = team.points
+        old_wins = team.wins
+
         team.points = points
         team.wins = wins
         db.session.commit()
+
+        # Log the points/wins changes
+        audit_log = AuditLog(
+            user_id=current_user.id,
+            action='edit_ranking',
+            target_type='team',
+            target_id=team_id,
+            details=json.dumps({
+                'team_name': team.name,
+                'old_points': old_points,
+                'new_points': points,
+                'old_wins': old_wins,
+                'new_wins': wins
+            })
+        )
+        db.session.add(audit_log)
+        db.session.commit()
+
         flash('Ranking updated successfully!', category='success')
         return redirect(url_for('views.manage_rankings'))
 
     return render_template('edit_ranking.html', team=team)
+
+@views.route('/audit-logs')
+@login_required
+@admin_required
+def audit_logs():
+    """View audit logs."""
+    page = request.args.get('page', 1, type=int)
+    per_page = 50  # Show 50 logs per page
+
+    # Get all audit logs, ordered by timestamp descending
+    logs_query = AuditLog.query.order_by(AuditLog.timestamp.desc())
+    logs_pagination = logs_query.paginate(page=page, per_page=per_page, error_out=False)
+    logs = logs_pagination.items
+
+    return render_template('audit_logs.html', logs=logs, pagination=logs_pagination)
+
+@views.route('/export-audit-logs')
+@login_required
+@admin_required
+def export_audit_logs():
+    """Export audit logs to PDF."""
+    # Get all audit logs
+    logs = AuditLog.query.order_by(AuditLog.timestamp.desc()).all()
+
+    # Create PDF buffer
+    buffer = BytesIO()
+    doc = SimpleDocTemplate(buffer, pagesize=letter)
+    styles = getSampleStyleSheet()
+
+    # Title style
+    title_style = ParagraphStyle(
+        'Title',
+        parent=styles['Heading1'],
+        fontSize=16,
+        spaceAfter=30,
+        alignment=1  # Center
+    )
+
+    # Header style
+    header_style = ParagraphStyle(
+        'Header',
+        parent=styles['Normal'],
+        fontSize=10,
+        fontName='Helvetica-Bold'
+    )
+
+    # Cell style
+    cell_style = ParagraphStyle(
+        'Cell',
+        parent=styles['Normal'],
+        fontSize=8
+    )
+
+    # Build PDF content
+    content = []
+
+    # Title
+    title = Paragraph("Audit Logs Report", title_style)
+    content.append(title)
+    content.append(Spacer(1, 12))
+
+    # Table data
+    data = [
+        [Paragraph('Timestamp', header_style), Paragraph('User', header_style), Paragraph('Action', header_style), Paragraph('Target Type', header_style), Paragraph('Target ID', header_style), Paragraph('Details', header_style)]
+    ]
+
+    for log in logs:
+        user_email = log.user.email if log.user else 'System (Auto)'
+        action = log.action.replace('_', ' ').title()
+        target_type = log.target_type.title()
+        timestamp = log.timestamp.strftime('%Y-%m-%d %H:%M:%S')
+
+        # Truncate details if too long
+        details = log.details if log.details else 'No details'
+        if len(details) > 100:
+            details = details[:97] + '...'
+
+        data.append([
+            Paragraph(timestamp, cell_style),
+            Paragraph(user_email, cell_style),
+            Paragraph(action, cell_style),
+            Paragraph(target_type, cell_style),
+            Paragraph(str(log.target_id), cell_style),
+            Paragraph(details, cell_style)
+        ])
+
+    # Create table
+    table = Table(data, colWidths=[70, 70, 60, 60, 40, 150])
+    table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+        ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('FONTSIZE', (0, 0), (-1, 0), 10),
+        ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+        ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
+        ('GRID', (0, 0), (-1, -1), 1, colors.black),
+        ('FONTSIZE', (0, 1), (-1, -1), 8),
+    ]))
+
+    content.append(table)
+
+    # Build PDF
+    doc.build(content)
+
+    # Return PDF response
+    buffer.seek(0)
+    response = make_response(buffer.getvalue())
+    response.headers['Content-Type'] = 'application/pdf'
+    response.headers['Content-Disposition'] = 'attachment; filename=audit_logs.pdf'
+    return response

@@ -34,6 +34,7 @@ Security Notes:
 from flask_login import UserMixin
 from sqlalchemy.sql import func
 from typing import Optional
+import json
 
 from . import db
 
@@ -164,3 +165,30 @@ class TournamentRegistration(db.Model):
             self.team_id = team_id
         if status is not None:
             self.status = status
+
+class AuditLog(db.Model):
+    """AuditLog model for tracking administrative actions."""
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)  # Nullable for automatic actions
+    action = db.Column(db.String(100))  # e.g., 'approve_registration', 'reject_registration', 'archive_tournament', 'update_ranking', 'auto_archive_tournament'
+    target_type = db.Column(db.String(50))  # e.g., 'registration', 'tournament', 'team'
+    target_id = db.Column(db.Integer)  # ID of the target entity
+    # pylint: disable=E1102
+    timestamp = db.Column(db.DateTime(timezone=True), default=func.now())
+    details = db.Column(db.Text)  # JSON string with additional details
+
+    user = db.relationship('User', backref='audit_logs', lazy=True)
+
+    def __init__(self, user_id: Optional[int] = None, action: Optional[str] = None, target_type: Optional[str] = None, target_id: Optional[int] = None, details: Optional[str] = None, **kwargs) -> None:
+        """Typed initializer for AuditLog."""
+        super().__init__(**kwargs)
+        if user_id is not None:
+            self.user_id = user_id
+        if action is not None:
+            self.action = action
+        if target_type is not None:
+            self.target_type = target_type
+        if target_id is not None:
+            self.target_id = target_id
+        if details is not None:
+            self.details = details

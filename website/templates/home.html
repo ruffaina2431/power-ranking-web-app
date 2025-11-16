@@ -103,7 +103,10 @@ JavaScript Features:
 
 <script>
 function changeCategory(category) {
-    window.location.href = '?category=' + encodeURIComponent(category);
+    var currentUrl = new URL(window.location);
+    currentUrl.searchParams.set('category', encodeURIComponent(category));
+    currentUrl.searchParams.delete('page'); // Reset to page 1 for category change
+    window.location.href = currentUrl.toString();
 }
 
 function searchGame() {
@@ -111,7 +114,10 @@ function searchGame() {
     if (searchTerm) {
         // Store the current search term in session storage (original case for display)
         sessionStorage.setItem('lastSearchTerm', searchTerm);
-        window.location.href = '?category=' + encodeURIComponent(searchTerm);
+        var currentUrl = new URL(window.location);
+        currentUrl.searchParams.set('category', encodeURIComponent(searchTerm));
+        currentUrl.searchParams.delete('page'); // Reset to page 1 for search
+        window.location.href = currentUrl.toString();
     } else {
         document.getElementById('searchFeedback').style.display = 'block';
         document.getElementById('searchFeedback').textContent = 'Please enter a game name to search';
@@ -133,6 +139,7 @@ function sortTable(sortBy) {
 
     currentUrl.searchParams.set('sort', sortBy);
     currentUrl.searchParams.set('order', newOrder);
+    // Keep current page for sorting
     window.location.href = currentUrl.toString();
 }
 </script>
@@ -209,6 +216,55 @@ function sortTable(sortBy) {
                     </tbody>
                 </table>
             </div>
+
+            <!-- Pagination Controls -->
+            {% if pagination %}
+            <nav aria-label="Team rankings pagination" class="mt-4">
+                <ul class="pagination justify-content-center">
+                    {% if pagination.has_prev %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ url_for('views.home', category=current_category, sort=sort_by, order=order, page=pagination.prev_num) }}" aria-label="Previous">
+                            <span aria-hidden="true">&laquo;</span>
+                        </a>
+                    </li>
+                    {% else %}
+                    <li class="page-item disabled">
+                        <span class="page-link">&laquo;</span>
+                    </li>
+                    {% endif %}
+
+                    {% for page_num in pagination.iter_pages() %}
+                        {% if page_num %}
+                            {% if page_num == pagination.page %}
+                            <li class="page-item active">
+                                <span class="page-link">{{ page_num }}</span>
+                            </li>
+                            {% else %}
+                            <li class="page-item">
+                                <a class="page-link" href="{{ url_for('views.home', category=current_category, sort=sort_by, order=order, page=page_num) }}">{{ page_num }}</a>
+                            </li>
+                            {% endif %}
+                        {% else %}
+                            <li class="page-item disabled">
+                                <span class="page-link">...</span>
+                            </li>
+                        {% endif %}
+                    {% endfor %}
+
+                    {% if pagination.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ url_for('views.home', category=current_category, sort=sort_by, order=order, page=pagination.next_num) }}" aria-label="Next">
+                            <span aria-hidden="true">&raquo;</span>
+                        </a>
+                    </li>
+                    {% else %}
+                    <li class="page-item disabled">
+                        <span class="page-link">&raquo;</span>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
         </div>
     </div>
 
@@ -255,6 +311,55 @@ function sortTable(sortBy) {
                 </div>
                 {% endfor %}
             </div>
+
+            <!-- Tournament Pagination Controls -->
+            {% if tournament_pagination %}
+            <nav aria-label="Tournament pagination" class="mt-4">
+                <ul class="pagination justify-content-center">
+                    {% if tournament_pagination.has_prev %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ url_for('views.home', category=current_category, sort=sort_by, order=order, page=pagination.page, tournament_page=tournament_pagination.prev_num) }}" aria-label="Previous">
+                            <span aria-hidden="true">&laquo;</span>
+                        </a>
+                    </li>
+                    {% else %}
+                    <li class="page-item disabled">
+                        <span class="page-link">&laquo;</span>
+                    </li>
+                    {% endif %}
+
+                    {% for page_num in tournament_pagination.iter_pages() %}
+                        {% if page_num %}
+                            {% if page_num == tournament_pagination.page %}
+                            <li class="page-item active">
+                                <span class="page-link">{{ page_num }}</span>
+                            </li>
+                            {% else %}
+                            <li class="page-item">
+                                <a class="page-link" href="{{ url_for('views.home', category=current_category, sort=sort_by, order=order, page=pagination.page, tournament_page=page_num) }}">{{ page_num }}</a>
+                            </li>
+                            {% endif %}
+                        {% else %}
+                            <li class="page-item disabled">
+                                <span class="page-link">...</span>
+                            </li>
+                        {% endif %}
+                    {% endfor %}
+
+                    {% if tournament_pagination.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ url_for('views.home', category=current_category, sort=sort_by, order=order, page=pagination.page, tournament_page=tournament_pagination.next_num) }}" aria-label="Next">
+                            <span aria-hidden="true">&raquo;</span>
+                        </a>
+                    </li>
+                    {% else %}
+                    <li class="page-item disabled">
+                        <span class="page-link">&raquo;</span>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
             {% else %}
             <div class="text-center">
                 <i class="fa fa-calendar-times fa-3x text-muted mb-3"></i>

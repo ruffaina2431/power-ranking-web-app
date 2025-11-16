@@ -34,7 +34,7 @@ Features
 - **Tournament Registration**: Register teams for tournaments; approve/reject registrations (admin only).
 - **Dynamic Rankings**: View and manage team rankings based on points and wins.
 - **Filtering and Sorting**: Filter teams by game/category and sort by rank, name, points, or wins.
-- **Admin Controls**: Manage tournaments, rankings, and registrations.
+- **Admin Controls**: Manage tournaments, rankings, registrations, and export audit logs to PDF.
 - **API Endpoints**: Basic API for tournament details.
 
 Project Structure

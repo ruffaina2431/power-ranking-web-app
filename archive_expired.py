@@ -7,8 +7,9 @@ archives them by setting the 'archived' flag to True.
 """
 
 from website import create_app, db
-from website.models import Tournament
+from website.models import Tournament, TournamentRegistration, AuditLog
 from sqlalchemy.sql import func
+import json
 
 def archive_expired_tournaments():
     """Archive tournaments that have expired."""
@@ -25,6 +26,25 @@ def archive_expired_tournaments():
         for tournament in expired_tournaments:
             print(f"Archiving tournament: {tournament.name} (ID: {tournament.id})")
             tournament.archived = True
+
+            # Set all approved registrations for this tournament to 'archived'
+            approved_regs = TournamentRegistration.query.filter_by(tournament_id=tournament.id, status='approved').all()
+            for reg in approved_regs:
+                reg.status = 'archived'
+
+            # Log the automatic archiving
+            audit_log = AuditLog(
+                user_id=None,  # Automatic action
+                action='auto_archive_tournament',
+                target_type='tournament',
+                target_id=tournament.id,
+                details=json.dumps({
+                    'tournament_name': tournament.name,
+                    'location': tournament.location,
+                    'date': tournament.date.isoformat()
+                })
+            )
+            db.session.add(audit_log)
 
         if expired_tournaments:
             db.session.commit()
