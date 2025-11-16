@@ -65,7 +65,7 @@ JavaScript Features:
     height: 40px;
     border-radius: 50%;
     background: linear-gradient(45deg, #007bff, #ff3300);
-    color: white;
+    color: rgb(229, 255, 0);
     text-align: center;
     line-height: 40px;
     font-weight: bold;
@@ -190,7 +190,9 @@ function sortTable(sortBy) {
                             <td>
                                 <div class="d-flex align-items-center">
                                     {% if team.image %}
-                                    <img src="{{ url_for('static', filename=team.image) }}" alt="{{ team.name }} Logo" class="rounded-circle mr-2" style="width: 30px; height: 30px; object-fit: cover;">
+                                    <img src="{{ url_for('static', filename=team.image) }}?t={{ team.id }}" alt="{{ team.name }} Logo" class="rounded-circle mr-2" style="width: 30px; height: 30px; object-fit: cover;">
+                                    {% else %}
+                                    <img src="https://via.placeholder.com/30x30/cccccc/000000?text=No+Image" alt="No Team Image" class="rounded-circle mr-2" style="width: 30px; height: 30px; object-fit: cover;">
                                     {% endif %}
                                     <strong>{{ team.name }}</strong>
                                 </div>

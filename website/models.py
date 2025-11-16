@@ -59,8 +59,8 @@ class Team(db.Model):
     image = db.Column(db.String(255))  # Path to team image
     # pylint: disable=E1102
     created_date = db.Column(db.DateTime(timezone=True), default=func.now())
-    players = db.relationship('Player', backref='team', lazy=True)
-    tournament_registrations = db.relationship('TournamentRegistration', backref='team', lazy=True)
+    players = db.relationship('Player', backref='team', lazy=True, cascade="all, delete-orphan")
+    tournament_registrations = db.relationship('TournamentRegistration', backref='team', lazy=True, cascade="all, delete-orphan")
 
     __table_args__ = (db.UniqueConstraint('name', name='unique_team_name'),)
 

@@ -114,14 +114,14 @@ Special Features:
                 </div>
                 <div class="form-group">
                     <label for="game_name" class="label-custom">Game Name</label>
-                    <select class="form-control text-dark" id="game_name" name="game_name" required {% if predefined_game_name %}disabled{% endif %}>
+                    <select class="form-control text-dark" id="game_name" name="game_name" required {% if predefined_game_name or action == 'Edit' %}disabled{% endif %}>
                         <option value="">Select a game</option>
                         {% for category in categories %}
                         <option value="{{ category }}" {% if (team and team.game_name == category) or (predefined_game_name == category) %}selected{% endif %}>{{ category }}</option>
                         {% endfor %}
                     </select>
-                    {% if predefined_game_name %}
-                    <input type="hidden" name="game_name" value="{{ predefined_game_name }}">
+                    {% if predefined_game_name or action == 'Edit' %}
+                    <input type="hidden" name="game_name" value="{% if predefined_game_name %}{{ predefined_game_name }}{% else %}{{ team.game_name }}{% endif %}">
                     {% endif %}
                 </div>
                 <div class="form-group">
@@ -159,7 +159,7 @@ Special Features:
 </div>
 
 <script>
-    // Change button style after image upload for each player
+    // Change button style for each player
     for (let i = 1; i <= parseInt('{{ max_players }}'); i++) {
         const input = document.getElementById('player' + i + '_image');
         const button = input.previousElementSibling;

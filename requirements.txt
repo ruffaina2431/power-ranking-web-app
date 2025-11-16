@@ -7,3 +7,4 @@ python-dotenv>=1.0  # optional, useful for loading .env files in development
 # Optional (for migrations):
 Flask-Migrate>=3.1
 Flask-APScheduler>=1.12.3  # For background task scheduling
+Pillow>=9.0  # For image processing and resizing

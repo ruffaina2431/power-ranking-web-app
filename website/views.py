@@ -356,7 +356,7 @@ def team_create():
                 allowed_extensions = {'png', 'jpg', 'jpeg', 'gif'}
                 if '.' in file.filename and file.filename.rsplit('.', 1)[1].lower() in allowed_extensions:
                     filename = secure_filename(file.filename)
-                    upload_dir = os.path.join('power-ranking-web-app', 'website', 'static', 'uploads', 'teams')
+                    upload_dir = os.path.join('website', 'static', 'uploads', 'teams')
                     os.makedirs(upload_dir, exist_ok=True)
                     file_path = os.path.join(upload_dir, filename)
                     file.save(file_path)
@@ -420,7 +420,7 @@ def team_create():
                         allowed_extensions = {'png', 'jpg', 'jpeg', 'gif'}
                         if '.' in file.filename and file.filename.rsplit('.', 1)[1].lower() in allowed_extensions:
                             filename = secure_filename(file.filename)
-                            upload_dir = os.path.join('power-ranking-web-app', 'website', 'static', 'uploads', 'players')
+                            upload_dir = os.path.join('website', 'static', 'uploads', 'players')
                             os.makedirs(upload_dir, exist_ok=True)
                             file_path = os.path.join(upload_dir, filename)
                             file.save(file_path)
@@ -498,7 +498,7 @@ def team_edit(team_id):
                 allowed_extensions = {'png', 'jpg', 'jpeg', 'gif'}
                 if '.' in file.filename and file.filename.rsplit('.', 1)[1].lower() in allowed_extensions:
                     filename = secure_filename(file.filename)
-                    upload_dir = os.path.join('power-ranking-web-app', 'website', 'static', 'uploads', 'teams')
+                    upload_dir = os.path.join('website', 'static', 'uploads', 'teams')
                     os.makedirs(upload_dir, exist_ok=True)
                     file_path = os.path.join(upload_dir, filename)
                     file.save(file_path)
@@ -519,6 +519,37 @@ def team_edit(team_id):
         team.name = team_name
         team.game_name = game_name.strip()
         team.captain_phone = captain_phone
+
+        # Update player names and images
+        max_players = len(team.players)
+        for i in range(1, max_players + 1):
+            player_name = request.form.get(f'player{i}')
+            if player_name and player_name.strip():
+                player = team.players[i-1] if i-1 < len(team.players) else None
+                if player:
+                    player.name = player_name.strip()
+
+            # Handle player image uploads
+            player_image_key = f'player{i}_image'
+            if player_image_key in request.files:
+                file = request.files[player_image_key]
+                if file and file.filename:
+                    # Validate file type
+                    allowed_extensions = {'png', 'jpg', 'jpeg', 'gif'}
+                    if '.' in file.filename and file.filename.rsplit('.', 1)[1].lower() in allowed_extensions:
+                        filename = secure_filename(file.filename)
+                        upload_dir = os.path.join('website', 'static', 'uploads', 'players')
+                        os.makedirs(upload_dir, exist_ok=True)
+                        file_path = os.path.join(upload_dir, filename)
+                        file.save(file_path)
+                        # Update the player's image
+                        player = team.players[i-1] if i-1 < len(team.players) else None
+                        if player:
+                            player.image = f'uploads/players/{filename}'
+                    else:
+                        flash(f'Invalid image file type for Player {i}. Only PNG, JPG, JPEG, and GIF are allowed.', category='error')
+                        return redirect(url_for('views.team_edit', team_id=team_id))
+
         db.session.commit()
         flash('Team updated successfully!', category='success')
         return redirect(url_for('views.team_detail', team_id=team_id))

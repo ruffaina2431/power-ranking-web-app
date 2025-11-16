@@ -37,7 +37,9 @@ Navigation:
                         <h2 class="card-title mb-1">{{ team.name }}</h2>
                         <p class="text-muted mb-2"><i class="fa fa-phone mr-2"></i> Captain: {{ team.captain_phone or '—' }}</p>
                         {% if team.image %}
-                        <img src="{{ url_for('static', filename=team.image) }}" alt="{{ team.name }} Logo" class="img-fluid rounded" style="max-width: 100px; max-height: 100px;">
+                        <img src="{{ url_for('static', filename=team.image) }}?t={{ team.id }}" alt="{{ team.name }} Logo" class="img-fluid rounded" style="max-width: 100px; max-height: 100px;">
+                        {% else %}
+                        <img src="https://via.placeholder.com/100x100/cccccc/000000?text=No+Image" alt="No Team Image" class="img-fluid rounded" style="max-width: 100px; max-height: 100px;">
                         {% endif %}
                     </div>
                     <div class="text-right">
@@ -71,28 +73,26 @@ Navigation:
             <div class="card-header">
                 <h5 class="mb-0">Players</h5>
             </div>
-            <div class="card-body p-0">
+            <div class="card-body">
                 {% if team.players %}
-                    <ul class="list-group list-group-flush">
+                    <div class="row">
                         {% for player in team.players %}
-                            <li class="list-group-item list-group-item-dark d-flex align-items-center justify-content-between">
-                                <div class="d-flex align-items-center">
-                                    {% if player.image %}
-                                        <img src="{{ url_for('static', filename=player.image) }}" alt="{{ player.name }} Image" class="rounded-circle mr-3" style="width: 40px; height: 40px; object-fit: cover;">
-                                    {% else %}
-                                        <div class="rounded-circle mr-3 bg-secondary d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
-                                            <span class="text-white">N/A</span>
-                                        </div>
-                                    {% endif %}
-                                    <div>
-                                        <div class="font-weight-bold player-name text-white" data-player-id="{{ player.id }}">{{ player.name }}</div>
+                            <div class="col-md-4 mb-3">
+                                <div class="card bg-secondary text-white h-100">
+                                    <div class="card-body text-center">
+                                        {% if player.image %}
+                                            <img src="{{ url_for('static', filename=player.image) }}?t={{ player.id }}" alt="{{ player.name }} Image" class="card-img-top mb-2 rounded-circle" style="width: 120px; height: 120px; object-fit: cover;">
+                                        {% else %}
+                                            <img src="https://via.placeholder.com/120x120/cccccc/000000?text=No+Image" alt="No Player Image" class="card-img-top mb-2 rounded-circle" style="width: 120px; height: 120px; object-fit: cover;">
+                                        {% endif %}
+                                        <h5 class="card-title player-name" data-player-id="{{ player.id }}">{{ player.name }}</h5>
                                     </div>
                                 </div>
-                            </li>
+                            </div>
                         {% endfor %}
-                    </ul>
+                    </div>
                 {% else %}
-                    <div class="card-body text-center">
+                    <div class="text-center">
                         <h5 class="card-title">No players yet</h5>
                         <p class="card-text text-muted">This team doesn't have any players added. Once players join, they'll appear here.</p>
                     </div>

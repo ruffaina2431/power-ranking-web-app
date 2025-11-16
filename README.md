@@ -149,5 +149,12 @@ The database tables are defined in `website/models.py` (SQLAlchemy models). Key 
 - TournamentRegistration
   - id, tournament_id, team_id, registration_date, status
 
+Troubleshooting
+---------------
+- **ModuleNotFoundError (e.g., 'No module named 'flask_apscheduler'')**: This indicates a missing dependency. Ensure you have activated the virtual environment (`.venv\Scripts\activate` on Windows) and run `pip install -r requirements.txt` to install all required packages. If using the setup script, verify it completed successfully without errors.
+- **Database connection errors**: If using MySQL, ensure the server is running and the database exists. For SQLite, no additional setup is needed.
+- **Port already in use**: If port 5000 is occupied, stop other processes or modify the port in `main.py`.
+- **Permission errors**: Run commands as administrator if necessary, especially for virtual environment creation.
+
 
 
