@@ -123,6 +123,7 @@ class Tournament(db.Model):
     date = db.Column(db.DateTime(timezone=True))
     max_players = db.Column(db.Integer)
     archived = db.Column(db.Boolean, default=False)
+    hide = db.Column(db.Boolean, default=False)
     registrations = db.relationship('TournamentRegistration', backref='tournament', lazy=True)
 
     def __init__(

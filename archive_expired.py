@@ -26,6 +26,7 @@ def archive_expired_tournaments():
         for tournament in expired_tournaments:
             print(f"Archiving tournament: {tournament.name} (ID: {tournament.id})")
             tournament.archived = True
+            tournament.hide = True  # Hide expired tournaments
 
             # Set all approved registrations for this tournament to 'archived'
             approved_regs = TournamentRegistration.query.filter_by(tournament_id=tournament.id, status='approved').all()

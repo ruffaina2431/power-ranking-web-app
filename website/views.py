@@ -132,7 +132,8 @@ def home():
     tournament_page = request.args.get('tournament_page', 1, type=int)
     upcoming_tournaments_query = Tournament.query.filter(
         Tournament.date >= func.now(),
-        Tournament.archived == False
+        Tournament.archived == False,
+        Tournament.hide == False
     ).order_by(Tournament.date.asc())
     tournaments_pagination = upcoming_tournaments_query.paginate(page=tournament_page, per_page=5, error_out=False)
     upcoming_tournaments = tournaments_pagination.items
@@ -195,7 +196,7 @@ def tournament_register(location):
 
         tournament = Tournament.query.filter_by(
             location=location,
-        ).filter(Tournament.archived == False).order_by(Tournament.date.desc()).first()
+        ).filter(Tournament.archived == False, Tournament.hide == False).order_by(Tournament.date.desc()).first()
 
         if not tournament:
             flash('No upcoming tournament found for this location!', category='error')
@@ -210,7 +211,9 @@ def tournament_register(location):
         active_approved_reg = TournamentRegistration.query.join(Tournament).filter(
             TournamentRegistration.team_id == team.id,
             TournamentRegistration.status == 'approved',
-            Tournament.archived == False
+            Tournament.archived == False,
+            Tournament.hide == False,
+            Tournament.date >= func.now()
         ).first()
 
         if active_approved_reg:
@@ -276,7 +279,9 @@ def tournament_join(location):
         active_approved_reg = TournamentRegistration.query.join(Tournament).filter(
             TournamentRegistration.team_id == team.id,
             TournamentRegistration.status == 'approved',
-            Tournament.archived == False
+            Tournament.archived == False,
+            Tournament.hide == False,
+            Tournament.date >= func.now()
         ).first()
 
         if active_approved_reg:
@@ -312,7 +317,9 @@ def tournament_join(location):
         active_approved_reg = TournamentRegistration.query.join(Tournament).filter(
             TournamentRegistration.team_id == team.id,
             TournamentRegistration.status == 'approved',
-            Tournament.archived == False
+            Tournament.archived == False,
+            Tournament.hide == False,
+            Tournament.date >= func.now()
         ).first()
         if not active_approved_reg and team.game_name == tournament.game_name:
             eligible_teams.append(team)

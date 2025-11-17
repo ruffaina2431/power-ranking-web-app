@@ -25,6 +25,7 @@ def archive_expired_tournaments():
         if expired_tournaments:
             for tournament in expired_tournaments:
                 tournament.archived = True
+                tournament.hide = True  # Hide expired tournaments
                 print(f"Auto-archived expired tournament: {tournament.name} (ID: {tournament.id})")
 
             db.session.commit()
